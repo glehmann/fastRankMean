@@ -11,7 +11,10 @@ template <class TInputPixel>
 class RankHistogram
 {
 public:
-  RankHistogram() {}
+  RankHistogram() 
+  {
+    m_Rank = 0.5;
+  }
   ~RankHistogram(){}
 
   virtual RankHistogram *Clone(){}
@@ -28,7 +31,12 @@ public:
  
   virtual TInputPixel GetValue(){}
 
-  virtual TInputPixel GetRankValue(float rank){}
+  virtual TInputPixel GetRankValue(){}
+
+  void SetRank(float rank)
+  {
+    m_Rank = rank;
+  }
 
   void SetBoundary( const TInputPixel & val )
   {
@@ -36,7 +44,7 @@ public:
   }
 protected:
   TInputPixel  m_Boundary;
-
+  float m_Rank;
 };
 
 template <class TInputPixel, class TCompare>
@@ -57,6 +65,7 @@ public:
   {
     RankHistogramMap *result = new RankHistogramMap();
     result->m_Map = this->m_Map;
+    result->m_Rank = this->m_Rank;
     return(result);
   }
   void Reset()
@@ -84,6 +93,10 @@ public:
     m_Map[ p ]--; 
   }
  
+  TInputPixel GetRankValue()
+  {
+  }
+
   TInputPixel GetValue()
   {    // clean the map
     typename MapType::iterator mapIt = m_Map.begin();
@@ -124,10 +137,12 @@ private:
   TCompare m_Compare;
   //unsigned int m_CurrentValue;
   TInputPixel m_CurrentValue;
+  TInputPixel m_RankValue;
   TInputPixel m_InitVal;
+  int m_Below;
   int m_Direction;
   int m_Entries;
-//  int m_Additions, m_Removals;
+
 public:
   RankHistogramVec() 
   {
@@ -145,8 +160,8 @@ public:
       m_CurrentValue = m_InitVal = NumericTraits< TInputPixel >::max();
       m_Direction = 1;
       }
-    m_Entries = 0;
-//    m_Additions=m_Removals=0;
+    m_Entries = m_Below = 0;
+    m_RankValue = m_CurrentValue - NumericTraits< TInputPixel >::NonpositiveMin();
   }
   ~RankHistogramVec(){}
 
@@ -159,28 +174,65 @@ public:
     result->m_InitVal = this->m_InitVal;
     result->m_Direction = this->m_Direction;
     result->m_Entries = this->m_Entries;
+    result->m_Below = this->m_Below;
+    result->m_Rank = this->m_Rank;
+    result->m_RankValue = this->m_RankValue;
     return(result);
   }
 
-  TInputPixel GetRankValue(float rank)
+  TInputPixel GetRankValue()
   {
-    // simple minded approach - computes the rank from scratch every
-    // time
-    unsigned long target = (int)(rank * m_Entries);
-    unsigned long total = 0;
-    TInputPixel pos = m_CurrentValue - NumericTraits< TInputPixel >::NonpositiveMin();
-//    std::cout << m_Entries << " " << (int)m_CurrentValue;
-    for (;;)
+    unsigned long target = (int)(this->m_Rank * (m_Entries-1)) + 1;
+    unsigned long total = m_Below;
+    TInputPixel pos = m_RankValue;
+
+    std::cout << std::endl;
+    for (TInputPixel Idx = 0; Idx < NumericTraits< TInputPixel >::max(); Idx++)
       {
-//      std::cout << "[" << (int)pos << " " << m_Vec[pos] << "]";
-      total += m_Vec[pos];
-      if (total > target)
+      if (m_Vec[Idx] != 0)
 	{
-//	std::cout << std::endl;
-	return(pos);
+	std::cout << "{" << (int)Idx << ", " << m_Vec[Idx] << "}";
 	}
-      ++pos;
       }
+    std::cout << std::endl;
+
+    std::cout << total << " " << target << " " << m_Entries << " " << (int)pos << std::endl;
+    if (total < target)
+      {
+      while (pos < m_Size)
+	{
+	++pos;
+	total += m_Vec[pos];
+	if (total >= target)
+	  break;
+	}
+      }
+    else
+      {
+      while(pos > 0)
+	{
+	unsigned int tbelow = total - m_Vec[pos];
+	if (tbelow < target) // we've overshot
+	  break;
+	total = tbelow;
+	--pos;
+	}
+      }
+    std::cout << "*" << total << " " << (int)pos << std::endl;
+    m_RankValue = pos;
+    m_Below = total;
+    return(pos);
+
+//     for (;;)
+//       {
+//       total += m_Vec[pos];
+//       if (total > target)
+// 	{
+// 	m_RankValue = pos;
+// 	return(pos);
+// 	}
+//       ++pos;
+//       }
   }
 
   void Reset(){
@@ -188,24 +240,18 @@ public:
     m_CurrentValue = m_InitVal;
     m_Entries = 0;
   }
-  
-  void AddBoundary()
-  {
-    AddPixel(this->m_Boundary);
-    ++m_Entries;
-  }
-
-  void RemoveBoundary(){
-    RemovePixel(this->m_Boundary);
-    --m_Entries;
-  }
-  
+    
   void AddPixel(const TInputPixel &p)
   {
     m_Vec[ (long unsigned int)(p - NumericTraits< TInputPixel >::NonpositiveMin())  ]++; 
+    std::cout << "[" << (int)p << " " << (int)m_RankValue << "]" << std::endl;
     if (m_Compare(p, m_CurrentValue))
       {
       m_CurrentValue = p;
+      }
+    if (m_Compare(p, m_RankValue) || p == m_RankValue)
+      {
+      ++m_Below;
       }
     ++m_Entries;
   }
@@ -217,6 +263,14 @@ public:
     assert(m_Entries >= 1);
     m_Vec[ (long unsigned int)(p - NumericTraits< TInputPixel >::NonpositiveMin())  ]--; 
     --m_Entries;
+
+    std::cout << "(" << (int)p << " " << (int)m_RankValue << ")" << std::endl;
+
+    if (m_Compare(p, m_RankValue) || p == m_RankValue)
+      {
+      --m_Below;
+      }
+    
     assert(static_cast<int>(m_CurrentValue -                                                                                                                      
 			    NumericTraits< TInputPixel >::NonpositiveMin() ) >= 0);
     assert(static_cast<int>(m_CurrentValue -                                                                                                                      

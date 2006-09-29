@@ -5,6 +5,7 @@
 #include "itkNeighborhood.h"
 #include "itkMovingHistogramRankImageFilter.h"
 #include "itkMedianImageFilter.h"
+#include "itkTimeProbe.h"
 
 int main(int, char * argv[])
 {
@@ -19,8 +20,10 @@ int main(int, char * argv[])
   reader->Update();
   typedef itk::Neighborhood<bool, dim> KType;
 
+  itk::TimeProbe HTime, TTime;
+
   KType kernel;
-  kernel.SetRadius(10);
+  kernel.SetRadius(1);
   for( KType::Iterator kit=kernel.Begin(); kit!=kernel.End(); kit++ )
     {
     *kit=1;
@@ -30,6 +33,10 @@ int main(int, char * argv[])
   FilterType::Pointer filter = FilterType::New();
   filter->SetInput( reader->GetOutput() );
   filter->SetKernel(kernel);
+  HTime.Start();
+  filter->Modified();
+  filter->Update();
+  HTime.Stop();
 
   typedef itk::ImageFileWriter< IType > WriterType;
   WriterType::Pointer writer = WriterType::New();
@@ -42,11 +49,17 @@ int main(int, char * argv[])
   MedianFilterType::Pointer median = MedianFilterType::New();
   median->SetInput(reader->GetOutput());
   median->SetRadius(kernel.GetRadius());
+  TTime.Start();
+  median->Modified();
+  median->Update();
+  TTime.Stop();
+
   writer->SetInput( median->GetOutput() );
   writer->SetFileName( argv[3] );
   writer->Update();
   std::cout << "Done standard" << std::endl;
-
+  std::cout << "Huang time " << HTime.GetMeanTime() << std::endl;
+  std::cout << "Traditional time " << TTime.GetMeanTime() << std::endl;
   return 0;
 }
 

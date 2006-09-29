@@ -250,6 +250,8 @@ MovingHistogramRankImageFilter<TInputImage, TOutputImage, TKernel>
     ThisHist = new MHistogram;
     }
 
+  ThisHist->SetRank(m_Rank);
+
   // initialize the histogram
   for( typename OffsetListType::iterator listIt = this->m_KernelOffsets.begin(); listIt != this->m_KernelOffsets.end(); listIt++ )
     {
@@ -261,7 +263,6 @@ MovingHistogramRankImageFilter<TInputImage, TOutputImage, TKernel>
       //histogram.AddBoundary(); 
       }
     }
-  
   // now move the histogram
   itk::FixedArray<short, ImageDimension> direction;
   direction.Fill(1);
@@ -322,7 +323,7 @@ MovingHistogramRankImageFilter<TInputImage, TOutputImage, TKernel>
       
       // Update the historgram
       IndexType currentIdx = InLineIt.GetIndex();
-      outputImage->SetPixel(currentIdx, static_cast< OutputPixelType >( histRef->GetRankValue(m_Rank) ));
+      outputImage->SetPixel(currentIdx, static_cast< OutputPixelType >( histRef->GetRankValue() ));
       stRegion.SetIndex( currentIdx - centerOffset );
       pushHistogram(histRef, addedList, removedList, inputRegion, 
 		    stRegion, inputImage, currentIdx);
