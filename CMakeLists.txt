@@ -3,6 +3,7 @@ PROJECT(fastRankMean)
 
 # set the name of the input image used to run the test
 SET(INPUT_IMAGE ${CMAKE_SOURCE_DIR}/images/cthead1.png)
+SET(INPUT_MASK ${CMAKE_SOURCE_DIR}/images/mask.png)
 
 #include some macros from another file...
 INCLUDE(IJMacros.txt)
@@ -62,9 +63,32 @@ ENDIF(BUILD_WRAPPERS)
 
 IF(BUILD_TESTING)
 
-SET(CurrentExe "check")
+FOREACH(CurrentExe "test2DCharHistMedian" "test2DShortHistMedian" "test2DIntHistMedian" "perfMedian")
+
 ADD_EXECUTABLE(${CurrentExe} ${CurrentExe}.cxx)
 TARGET_LINK_LIBRARIES(${CurrentExe} ${Libraries})
+
+ENDFOREACH(CurrentExe)
+
+FOREACH(CurrentExe "test2DCharHistMean" "test2DShortHistMean" "test2DIntHistMean")
+
+ADD_EXECUTABLE(${CurrentExe} ${CurrentExe}.cxx)
+TARGET_LINK_LIBRARIES(${CurrentExe} ${Libraries})
+
+ENDFOREACH(CurrentExe)
+
+FOREACH(CurrentExe "test2DCharHistMedianMask" "test2DIntHistMedianMask")
+
+ADD_EXECUTABLE(${CurrentExe} ${CurrentExe}.cxx)
+TARGET_LINK_LIBRARIES(${CurrentExe} ${Libraries})
+
+ENDFOREACH(CurrentExe)
+FOREACH(CurrentExe "test2DSepMedian" "test2DSepMaskMedian")
+
+ADD_EXECUTABLE(${CurrentExe} ${CurrentExe}.cxx)
+TARGET_LINK_LIBRARIES(${CurrentExe} ${Libraries})
+
+ENDFOREACH(CurrentExe)
 
 ENDIF(BUILD_TESTING)
 
@@ -76,5 +100,25 @@ ENDIF(BUILD_TESTING)
 #any tests you can comment out or delete the following line.
 # ADD_TEST(Testname ExecutableToRun arg1 arg2 arg3)
 
-ADD_TEST(Run check ${INPUT_IMAGE} out.png)
-ADD_TEST(CompareImage ${IMAGE_COMPARE} out.png ${CMAKE_SOURCE_DIR}/images/test.png)
+#ADD_TEST(Run check ${INPUT_IMAGE} out.png)
+#ADD_TEST(CompareImage ${IMAGE_COMPARE} out.png ${CMAKE_SOURCE_DIR}/images/test.png)
+
+ADD_TEST(test2Dchar test2DCharHistMedian 1 ${INPUT_IMAGE} chr_hist.png chr_std.png)
+ADD_TEST(test2Dshort test2DShortHistMedian 1 ${INPUT_IMAGE} shrt_hist.nii chr_std.nii)
+ADD_TEST(test2Dint test2DCharHistMedian 1 ${INPUT_IMAGE} int_hist.nii chr_std.nii)
+
+ADD_TEST(compChrShrt ${IMAGE_COMPARE} chr_hist.png shrt_hist.nii)
+ADD_TEST(compChrInt ${IMAGE_COMPARE} chr_hist.png int_hist.nii)
+ADD_TEST(compShrtInt ${IMAGE_COMPARE} shrt_hist.nii int_hist.nii)
+
+ADD_TEST(test2Dchar_mean test2DCharHistMean 1 ${INPUT_IMAGE} chr_hist_mean.png chr_std_mean.png)
+ADD_TEST(test2Dshort_mean test2DShortHistMean 1 ${INPUT_IMAGE} shrt_hist_mean.nii chr_std_mean.nii)
+ADD_TEST(test2Dint_mean test2DCharHistMean 1 ${INPUT_IMAGE} int_hist_mean.nii chr_std_mean.nii)
+
+ADD_TEST(compMeanChrShrt ${IMAGE_COMPARE} chr_hist_mean.png shrt_hist_mean.nii)
+ADD_TEST(compMeanChrInt ${IMAGE_COMPARE} chr_hist_mean.png int_hist_mean.nii)
+ADD_TEST(compMeanShrtInt ${IMAGE_COMPARE} shrt_hist_mean.nii int_hist_mean.nii)
+
+ADD_TEST(test2Dchar_mask_med test2DCharHistMedianMask 1 ${INPUT_IMAGE} ${INPUT_MASK} chr_mask_med.png )
+ADD_TEST(test2Dint_mask_med test2DIntHistMedianMask 1 ${INPUT_IMAGE} ${INPUT_MASK} int_mask_med.nii )
+ADD_TEST(compMaskMedChrInt ${IMAGE_COMPARE} chr_mask_med.png int_mask_med.nii)

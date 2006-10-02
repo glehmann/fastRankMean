@@ -1,7 +1,7 @@
 /*=========================================================================
 
   Program:   Insight Segmentation & Registration Toolkit
-  Module:    $RCSfile: itkMovingHistogramRankImageFilter.txx,v $
+  Module:    $RCSfile: itkMovingWindowMeanImageFilter.txx,v $
   Language:  C++
   Date:      $Date: 2004/04/30 21:02:03 $
   Version:   $Revision: 1.14 $
@@ -14,10 +14,10 @@
      PURPOSE.  See the above copyright notices for more information.
 
 =========================================================================*/
-#ifndef __itkMovingHistogramRankImageFilter_txx
-#define __itkMovingHistogramRankImageFilter_txx
+#ifndef __itkMovingWindowMeanImageFilter_txx
+#define __itkMovingWindowMeanImageFilter_txx
 
-#include "itkMovingHistogramRankImageFilter.h"
+#include "itkMovingWindowMeanImageFilter.h"
 #include "itkImageRegionIteratorWithIndex.h"
 #include "itkOffset.h"
 #include "itkProgressReporter.h"
@@ -33,17 +33,16 @@ namespace itk {
 
 
 template<class TInputImage, class TOutputImage, class TKernel>
-MovingHistogramRankImageFilter<TInputImage, TOutputImage, TKernel>
-::MovingHistogramRankImageFilter()
+MovingWindowMeanImageFilter<TInputImage, TOutputImage, TKernel>
+::MovingWindowMeanImageFilter()
   : m_Kernel()
 {
   m_PixelsPerTranslation = 0;
-  m_Rank = 0.5;
 }
 
 template<class TInputImage, class TOutputImage, class TKernel>
 void
-MovingHistogramRankImageFilter<TInputImage, TOutputImage, TKernel>
+MovingWindowMeanImageFilter<TInputImage, TOutputImage, TKernel>
 ::GenerateInputRequestedRegion()
 {
   // call the superclass' implementation of this method
@@ -94,7 +93,7 @@ MovingHistogramRankImageFilter<TInputImage, TOutputImage, TKernel>
 
 template<class TInputImage, class TOutputImage, class TKernel>
 void
-MovingHistogramRankImageFilter<TInputImage, TOutputImage, TKernel>
+MovingWindowMeanImageFilter<TInputImage, TOutputImage, TKernel>
 ::SetKernel( const KernelType& kernel )
 {
   // first, build the list of offsets of added and removed pixels when the 
@@ -227,7 +226,7 @@ MovingHistogramRankImageFilter<TInputImage, TOutputImage, TKernel>
 // faster due to improved memory access and a tighter loop.
 template<class TInputImage, class TOutputImage, class TKernel>
 void
-MovingHistogramRankImageFilter<TInputImage, TOutputImage, TKernel>
+MovingWindowMeanImageFilter<TInputImage, TOutputImage, TKernel>
 ::ThreadedGenerateData(const OutputImageRegionType& outputRegionForThread,
                        int threadId) 
 {
@@ -239,39 +238,22 @@ MovingHistogramRankImageFilter<TInputImage, TOutputImage, TKernel>
   const InputImageType* inputImage = this->GetInput();
   RegionType inputRegion = inputImage->GetRequestedRegion();
 
-  HistogramType *ThisHist;
-
-  if (useVectorBasedHistogram())
-    {
-    ThisHist = new VHistogram;
-    }
-  else
-    {
-    ThisHist = new MHistogram;
-    }
-
-  ThisHist->SetRank(m_Rank);
-
-  // initialize the histogram
+  // sum and area is all that needs to be tracked for the mean
+  double Sum = 0.0;
+  unsigned int Count = 0;
+  // initialize the sum
   for( typename OffsetListType::iterator listIt = this->m_KernelOffsets.begin(); listIt != this->m_KernelOffsets.end(); listIt++ )
     {
     IndexType idx = outputRegionForThread.GetIndex() + (*listIt);
     if( inputRegion.IsInside( idx ) )
-      { ThisHist->AddPixel( inputImage->GetPixel(idx) ); }
-    else
       { 
-      //histogram.AddBoundary(); 
+      Sum += (double)( inputImage->GetPixel(idx) ); 
+      ++Count;
       }
     }
 
-  // get the map based version set up properly
-  ThisHist->Initialize();
-  // look up the median so that the internal structures are set up
-  // before copies are made. This should improve the performance in
-  // 16bit vector histograms
-  ThisHist->GetRankValue();
 
-  // now move the histogram
+  // now move the window
   itk::FixedArray<short, ImageDimension> direction;
   direction.Fill(1);
   IndexType currentIdx = outputRegionForThread.GetIndex();
@@ -306,8 +288,11 @@ MovingHistogramRankImageFilter<TInputImage, TOutputImage, TKernel>
   IndexType LineStart;
   InLineIt.GoToBegin();
   
-  typedef typename std::vector<HistogramType *> HistVecType;
-  HistVecType HistVec(ImageDimension);
+  typedef typename std::vector<double> SumVecType;
+  SumVecType SumVec(ImageDimension);
+  typedef typename std::vector<unsigned int> CountVecType;
+  CountVecType CountVec(ImageDimension);
+
   typedef typename std::vector<IndexType> IndexVecType;
   IndexVecType PrevLineStartVec(ImageDimension);
 
@@ -317,23 +302,25 @@ MovingHistogramRankImageFilter<TInputImage, TOutputImage, TKernel>
   
   for (int i=0;i<ImageDimension;i++)
     {
-    HistVec[i] = ThisHist->Clone();
+    SumVec[i] = Sum;
+    CountVec[i] = Count;
     PrevLineStartVec[i] = InLineIt.GetIndex();
     Steps[i]=0;
     }
 
   while(!InLineIt.IsAtEnd())
     {
-    HistogramType *histRef = HistVec[BestDirection];
+    double *SumRef = &(SumVec[BestDirection]);
+    unsigned int *CountRef = &(CountVec[BestDirection]);
     IndexType PrevLineStart = InLineIt.GetIndex();
     for (InLineIt.GoToBeginOfLine(); !InLineIt.IsAtEndOfLine(); ++InLineIt)
       {
       
       // Update the historgram
       IndexType currentIdx = InLineIt.GetIndex();
-      outputImage->SetPixel(currentIdx, static_cast< OutputPixelType >( histRef->GetRankValue() ));
+      outputImage->SetPixel(currentIdx, static_cast< OutputPixelType >( *SumRef/(double)(*CountRef) ));
       stRegion.SetIndex( currentIdx - centerOffset );
-      pushHistogram(histRef, addedList, removedList, inputRegion, 
+      pushHistogram(*SumRef, *CountRef, addedList, removedList, inputRegion, 
 		    stRegion, inputImage, currentIdx);
 
       }
@@ -360,10 +347,11 @@ MovingHistogramRankImageFilter<TInputImage, TOutputImage, TKernel>
     IndexType PrevLineStartHist = LineStart - LineOffset;
     const OffsetListType* addedListLine = &this->m_AddedOffsets[LineOffset];;
     const OffsetListType* removedListLine = &this->m_RemovedOffsets[LineOffset];
-    HistogramType *tmpHist = HistVec[LineDirection];
+    double *tmpSum = &(SumVec[LineDirection]);
+    unsigned int *tmpCount = &(CountVec[LineDirection]);
     stRegion.SetIndex(PrevLineStart - centerOffset);
     // Now move the histogram
-    pushHistogram(tmpHist, addedListLine, removedListLine, inputRegion, 
+    pushHistogram(*tmpSum, *tmpCount, addedListLine, removedListLine, inputRegion, 
 		  stRegion, inputImage, PrevLineStartHist);
     
     //PrevLineStartVec[LineDirection] = LineStart;
@@ -375,24 +363,20 @@ MovingHistogramRankImageFilter<TInputImage, TOutputImage, TKernel>
       if (Steps[i] > Steps[LineDirection])
 	{
 	// make sure this is the right thing to do
-	delete(HistVec[i]);
-	HistVec[i] = HistVec[LineDirection]->Clone();
+	SumVec[i] = SumVec[LineDirection];
+	CountVec[i] = CountVec[LineDirection];
 	}
       }
     progress.CompletedPixel();
     }
-  for (int i=0;i<ImageDimension;i++) 
-    {
-    delete(HistVec[i]);
-    }
-  delete(ThisHist);
   delete [] Steps;
 }
 
 template<class TInputImage, class TOutputImage, class TKernel>
 void
-MovingHistogramRankImageFilter<TInputImage, TOutputImage, TKernel>
-::pushHistogram(HistogramType *histogram, 
+MovingWindowMeanImageFilter<TInputImage, TOutputImage, TKernel>
+::pushHistogram(double &Sum,
+		unsigned int &Count,
 		const OffsetListType* addedList,
 		const OffsetListType* removedList,
 		const RegionType &inputRegion,
@@ -405,9 +389,15 @@ MovingHistogramRankImageFilter<TInputImage, TOutputImage, TKernel>
     {
     // update the histogram
     for( typename OffsetListType::const_iterator addedIt = addedList->begin(); addedIt != addedList->end(); addedIt++ )
-      { histogram->AddPixel( inputImage->GetPixel( currentIdx + (*addedIt) ) ); }
+      { 
+      Sum += (double)(inputImage->GetPixel( currentIdx + (*addedIt) ) );
+      ++Count;
+      }
     for( typename OffsetListType::const_iterator removedIt = removedList->begin(); removedIt != removedList->end(); removedIt++ )
-      { histogram->RemovePixel( inputImage->GetPixel( currentIdx + (*removedIt) ) ); }
+      { 
+      Sum -= (double)(inputImage->GetPixel( currentIdx + (*removedIt) ) );
+      --Count;
+      }
     }
   else
     {
@@ -416,20 +406,18 @@ MovingHistogramRankImageFilter<TInputImage, TOutputImage, TKernel>
       {
       IndexType idx = currentIdx + (*addedIt);
       if( inputRegion.IsInside( idx ) )
-        { histogram->AddPixel( inputImage->GetPixel( idx ) ); }
-      else
         { 
-	//histogram->AddBoundary(); 
+	Sum += (double)(inputImage->GetPixel( idx ) );
+	++Count;
 	}
       }
     for( typename OffsetListType::const_iterator removedIt = removedList->begin(); removedIt != removedList->end(); removedIt++ )
       {
       IndexType idx = currentIdx + (*removedIt);
       if( inputRegion.IsInside( idx ) )
-        { histogram->RemovePixel( inputImage->GetPixel( idx ) ); }
-      else
         { 
-	//histogram->RemoveBoundary(); 
+	Sum -= (double)(inputImage->GetPixel( idx ) );
+	--Count;
 	}
       }
     }
@@ -438,21 +426,7 @@ MovingHistogramRankImageFilter<TInputImage, TOutputImage, TKernel>
 
 template<class TInputImage, class TOutputImage, class TKernel>
 void
-MovingHistogramRankImageFilter<TInputImage, TOutputImage, TKernel>
-::printHist(const HistogramType *H)
-{
-/*  std::cout << "Hist = " ;
-  typename HistogramType::const_iterator mapIt;
-  for (mapIt = H.begin(); mapIt != H.end(); mapIt++) 
-    {
-    std::cout << "V= " << int(mapIt->first) << " C= " << int(mapIt->second) << " ";
-    }
-  std::cout << std::endl;*/
-}
-
-template<class TInputImage, class TOutputImage, class TKernel>
-void
-MovingHistogramRankImageFilter<TInputImage, TOutputImage, TKernel>
+MovingWindowMeanImageFilter<TInputImage, TOutputImage, TKernel>
 ::GetDirAndOffset(const IndexType LineStart, 
 		  const IndexType PrevLineStart,
 		  const int ImageDimension,
@@ -481,7 +455,7 @@ MovingHistogramRankImageFilter<TInputImage, TOutputImage, TKernel>
 
 template<class TInputImage, class TOutputImage, class TKernel>
 void
-MovingHistogramRankImageFilter<TInputImage, TOutputImage, TKernel>
+MovingWindowMeanImageFilter<TInputImage, TOutputImage, TKernel>
 ::PrintSelf(std::ostream &os, Indent indent) const
 {
   Superclass::PrintSelf(os, indent);

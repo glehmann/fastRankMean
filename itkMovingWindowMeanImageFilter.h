@@ -1,7 +1,7 @@
 /*=========================================================================
 
   Program:   Insight Segmentation & Registration Toolkit
-  Module:    $RCSfile: itkMovingHistogramRankImageFilter.h,v $
+  Module:    $RCSfile: itkMovingWindowMeanImageFilter.h,v $
   Language:  C++
   Date:      $Date: 2004/04/30 21:02:03 $
   Version:   $Revision: 1.15 $
@@ -14,52 +14,39 @@
      PURPOSE.  See the above copyright notices for more information.
 
 =========================================================================*/
-#ifndef __itkMovingHistogramRankImageFilter_h
-#define __itkMovingHistogramRankImageFilter_h
+#ifndef __itkMovingWindowMeanImageFilter_h
+#define __itkMovingWindowMeanImageFilter_h
 
 #include "itkImageToImageFilter.h"
 #include <list>
 #include <map>
 #include <set>
 #include "itkOffsetLexicographicCompare.h"
-#include "itkRankHistogram.h"
 
 namespace itk {
 
 /**
- * \class MovingHistogramRankImageFilter
- * \brief Rank filter of a greyscale image
+ * \class MovingWindowMeanImageFilter
+ * \brief Mean filter
+ * Linear filter where each output pixel is the mean of pixels in an
+ * input neighborhood.
  *
- * Nonlinear filter in which each output pixel is a user defined
- * rank of input pixels in a user defined neighborhood. The default
- * rank is 0.5 (median). The boundary conditions are different to the
- * standard itkMedianImageFilter. In this filter the neighborhood is
- * cropped at the boundary, and is therefore smaller.
- *
- * This filter uses a recursive implementation - essentially the one
- * by Huang 1979, I believe, to compute the rank,
- * and is therefore usually a lot faster than the direct
- * implementation. The extensions to Huang are support for arbitary
- * pixel types (using c++ maps) and arbitary neighborhoods. I presume
- * that these are not new ideas.
+ * The boundary conditions of this filter are different to
+ * itkMeanImageFilter. In this filter the neighborhood is cropped at
+ * the border and therefore becomes smaller.
  * 
- * This filter is based on the sliding window code from the
- * consolidatedMorphology package on InsightJournal.
- *
- * The structuring element is assumed to be composed of binary
- * values (zero or one). Only elements of the structuring element
- * having values > 0 are candidates for affecting the center pixel.
- * 
- * \author Richard Beare
+ * This filter employs a recursive implementation based on the sliding
+ * window code from consolidatedMorphology, and is therefore usually a
+ * lot faster than the direct implementation.
  */
 
 template<class TInputImage, class TOutputImage, class TKernel >
-class ITK_EXPORT MovingHistogramRankImageFilter : 
+class ITK_EXPORT MovingWindowMeanImageFilter : 
     public ImageToImageFilter<TInputImage, TOutputImage>
 {
 public:
   /** Standard class typedefs. */
-  typedef MovingHistogramRankImageFilter Self;
+  typedef MovingWindowMeanImageFilter Self;
   typedef ImageToImageFilter<TInputImage,TOutputImage>  Superclass;
   typedef SmartPointer<Self>        Pointer;
   typedef SmartPointer<const Self>  ConstPointer;
@@ -68,7 +55,7 @@ public:
   itkNewMacro(Self);  
 
   /** Runtime information support. */
-  itkTypeMacro(MovingHistogramRankImageFilter, 
+  itkTypeMacro(MovingWindowMeanImageFilter, 
                ImageToImageFilter);
   
   /** Image related typedefs. */
@@ -108,9 +95,7 @@ public:
   
   itkGetMacro(PixelsPerTranslation, unsigned long);
   
-  itkSetMacro(Rank, float)
-  itkGetMacro(Rank, float)
-  /** MovingHistogramRankImageFilterBase need to make sure they request enough of an
+  /** MovingWindowMeanImageFilterBase need to make sure they request enough of an
    * input image to account for the structuring element size.  The input
    * requested region is expanded by the radius of the structuring element.
    * If the request extends past the LargestPossibleRegion for the input,
@@ -118,13 +103,8 @@ public:
   void GenerateInputRequestedRegion() ;
 
 protected:
-  MovingHistogramRankImageFilter();
-  ~MovingHistogramRankImageFilter() {};
-
-  typedef RankHistogram<InputPixelType> HistogramType;
-  
-  typedef RankHistogramVec<InputPixelType, std::less< InputPixelType> > VHistogram;
-  typedef RankHistogramMap<InputPixelType, std::less< InputPixelType>  > MHistogram;
+  MovingWindowMeanImageFilter();
+  ~MovingWindowMeanImageFilter() {};
   
   
   /** Multi-thread version GenerateData. */
@@ -149,7 +129,8 @@ protected:
   unsigned long m_PixelsPerTranslation;
 
 
-  void pushHistogram(HistogramType *histogram, 
+  void pushHistogram(double &Sum,
+		     unsigned int &Count,
 		     const OffsetListType* addedList,
 		     const OffsetListType* removedList,
 		     const RegionType &inputRegion,
@@ -157,7 +138,6 @@ protected:
 		     const InputImageType* inputImage,
 		     const IndexType currentIdx);
 
-  void printHist(const HistogramType *H);
 
   void GetDirAndOffset(const IndexType LineStart, 
 		       const IndexType PrevLineStart,
@@ -166,23 +146,10 @@ protected:
 		       OffsetType &Changes,
 		       int &LineDirection);
 
-  bool useVectorBasedHistogram()
-  {
-    // bool, short and char are acceptable for vector based algorithm: they do not require
-    // too much memory. Other types are not usable with that algorithm
-    return typeid(InputPixelType) == typeid(unsigned char)
-      || typeid(InputPixelType) == typeid(signed char)
-      || typeid(InputPixelType) == typeid(unsigned short)
-      || typeid(InputPixelType) == typeid(signed short)
-      || typeid(InputPixelType) == typeid(bool);
-  }
-
-
 private:
-  MovingHistogramRankImageFilter(const Self&); //purposely not implemented
+  MovingWindowMeanImageFilter(const Self&); //purposely not implemented
   void operator=(const Self&); //purposely not implemented
 
-  float m_Rank;
 
   class DirectionCost {
     public :
@@ -215,7 +182,7 @@ private:
 } // end namespace itk
   
 #ifndef ITK_MANUAL_INSTANTIATION
-#include "itkMovingHistogramRankImageFilter.txx"
+#include "itkMovingWindowMeanImageFilter.txx"
 #endif
 
 #endif

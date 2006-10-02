@@ -1,7 +1,7 @@
 /*=========================================================================
 
   Program:   Insight Segmentation & Registration Toolkit
-  Module:    $RCSfile: itkMovingHistogramRankImageFilter.h,v $
+  Module:    $RCSfile: itkMaskedMovingHistogramRankImageFilter.h,v $
   Language:  C++
   Date:      $Date: 2004/04/30 21:02:03 $
   Version:   $Revision: 1.15 $
@@ -14,52 +14,36 @@
      PURPOSE.  See the above copyright notices for more information.
 
 =========================================================================*/
-#ifndef __itkMovingHistogramRankImageFilter_h
-#define __itkMovingHistogramRankImageFilter_h
+#ifndef __itkMaskedMovingHistogramRankImageFilter_h
+#define __itkMaskedMovingHistogramRankImageFilter_h
 
 #include "itkImageToImageFilter.h"
 #include <list>
 #include <map>
 #include <set>
 #include "itkOffsetLexicographicCompare.h"
-#include "itkRankHistogram.h"
+#include "itkRankHistogramMask.h"
 
 namespace itk {
 
 /**
- * \class MovingHistogramRankImageFilter
- * \brief Rank filter of a greyscale image
+ * \class MaskedMovingHistogramRankImageFilter
+ * \brief Rank filter of a greyscale image restricted to a mask
  *
- * Nonlinear filter in which each output pixel is a user defined
- * rank of input pixels in a user defined neighborhood. The default
- * rank is 0.5 (median). The boundary conditions are different to the
- * standard itkMedianImageFilter. In this filter the neighborhood is
- * cropped at the boundary, and is therefore smaller.
+ * This is almost identical to MovingHistogramRankImageFilter, except
+ * that a mask is provided too. Should be a better way of structuring
+ * this to share code.
  *
- * This filter uses a recursive implementation - essentially the one
- * by Huang 1979, I believe, to compute the rank,
- * and is therefore usually a lot faster than the direct
- * implementation. The extensions to Huang are support for arbitary
- * pixel types (using c++ maps) and arbitary neighborhoods. I presume
- * that these are not new ideas.
- * 
- * This filter is based on the sliding window code from the
- * consolidatedMorphology package on InsightJournal.
- *
- * The structuring element is assumed to be composed of binary
- * values (zero or one). Only elements of the structuring element
- * having values > 0 are candidates for affecting the center pixel.
- * 
  * \author Richard Beare
  */
 
-template<class TInputImage, class TOutputImage, class TKernel >
-class ITK_EXPORT MovingHistogramRankImageFilter : 
+template<class TInputImage, class TMaskImage, class TOutputImage, class TKernel >
+class ITK_EXPORT MaskedMovingHistogramRankImageFilter : 
     public ImageToImageFilter<TInputImage, TOutputImage>
 {
 public:
   /** Standard class typedefs. */
-  typedef MovingHistogramRankImageFilter Self;
+  typedef MaskedMovingHistogramRankImageFilter Self;
   typedef ImageToImageFilter<TInputImage,TOutputImage>  Superclass;
   typedef SmartPointer<Self>        Pointer;
   typedef SmartPointer<const Self>  ConstPointer;
@@ -68,12 +52,13 @@ public:
   itkNewMacro(Self);  
 
   /** Runtime information support. */
-  itkTypeMacro(MovingHistogramRankImageFilter, 
+  itkTypeMacro(MaskedMovingHistogramRankImageFilter, 
                ImageToImageFilter);
   
   /** Image related typedefs. */
   typedef TInputImage InputImageType;
   typedef TOutputImage OutputImageType;
+  typedef TMaskImage MaskImageType;
   typedef typename TInputImage::RegionType RegionType ;
   typedef typename TInputImage::SizeType SizeType ;
   typedef typename TInputImage::IndexType IndexType ;
@@ -82,7 +67,23 @@ public:
   typedef typename Superclass::OutputImageRegionType OutputImageRegionType;
   typedef typename TOutputImage::PixelType OutputPixelType ;
   typedef typename TInputImage::PixelType InputPixelType ;
-  
+  typedef typename MaskImageType::PixelType MaskPixelType;
+
+     /** Set the marker image */
+  void SetMaskImage(MaskImageType *input)
+     {
+     // Process object is not const-correct so the const casting is required.
+     this->SetNthInput( 1, const_cast<TMaskImage *>(input) );
+     }
+
+  /** Get the marker image */
+  MaskImageType * GetMaskImage()
+    {
+    return static_cast<MaskImageType*>(const_cast<DataObject *>(this->ProcessObject::GetInput(1)));
+    }
+
+
+
   /** Image related typedefs. */
   itkStaticConstMacro(ImageDimension, unsigned int,
                       TInputImage::ImageDimension);
@@ -107,10 +108,9 @@ public:
   itkGetConstReferenceMacro(Kernel, KernelType);
   
   itkGetMacro(PixelsPerTranslation, unsigned long);
-  
   itkSetMacro(Rank, float)
   itkGetMacro(Rank, float)
-  /** MovingHistogramRankImageFilterBase need to make sure they request enough of an
+  /** MaskedMovingHistogramRankImageFilterBase need to make sure they request enough of an
    * input image to account for the structuring element size.  The input
    * requested region is expanded by the radius of the structuring element.
    * If the request extends past the LargestPossibleRegion for the input,
@@ -118,8 +118,8 @@ public:
   void GenerateInputRequestedRegion() ;
 
 protected:
-  MovingHistogramRankImageFilter();
-  ~MovingHistogramRankImageFilter() {};
+  MaskedMovingHistogramRankImageFilter();
+  ~MaskedMovingHistogramRankImageFilter() {};
 
   typedef RankHistogram<InputPixelType> HistogramType;
   
@@ -155,6 +155,7 @@ protected:
 		     const RegionType &inputRegion,
 		     const RegionType &kernRegion,
 		     const InputImageType* inputImage,
+		     const MaskImageType *maskImage,
 		     const IndexType currentIdx);
 
   void printHist(const HistogramType *H);
@@ -179,7 +180,7 @@ protected:
 
 
 private:
-  MovingHistogramRankImageFilter(const Self&); //purposely not implemented
+  MaskedMovingHistogramRankImageFilter(const Self&); //purposely not implemented
   void operator=(const Self&); //purposely not implemented
 
   float m_Rank;
@@ -215,7 +216,7 @@ private:
 } // end namespace itk
   
 #ifndef ITK_MANUAL_INSTANTIATION
-#include "itkMovingHistogramRankImageFilter.txx"
+#include "itkMaskedMovingHistogramRankImageFilter.txx"
 #endif
 
 #endif

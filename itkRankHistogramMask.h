@@ -13,6 +13,8 @@ namespace itk {
 // Support for different TCompare hasn't been tested, and shouldn't be
 // necessary for the rank filters.
 //
+// This is a modified version for use with masks. Need to allow for
+// the situation in which the map is empty
 template <class TInputPixel>
 class RankHistogram
 {
@@ -34,7 +36,7 @@ public:
   // For the map based version - to be called after there is some data
   // included. Meant to be an optimization so that the rank value
   // iterator is properly set.
-  virtual void Initialize(){};
+//  virtual void Initialize(){};
   //virtual TInputPixel GetValue(){}
 
   virtual TInputPixel GetRankValue(){}
@@ -75,11 +77,11 @@ public:
     if( m_Compare( NumericTraits< TInputPixel >::max(), 
 		   NumericTraits< TInputPixel >::NonpositiveMin() ) )
       {
-      m_InitVal = NumericTraits< TInputPixel >::NonpositiveMin();
+      m_InitVal = NumericTraits< TInputPixel >::max();
       }
     else
       {
-      m_InitVal = NumericTraits< TInputPixel >::max();
+      m_InitVal = NumericTraits< TInputPixel >::NonpositiveMin();
       }
     m_RankValue = m_InitVal;
     m_RankIt = m_Map.begin();  // equivalent to setting to the intial value
@@ -112,17 +114,18 @@ public:
   void AddPixel(const TInputPixel &p)
   {
     m_Map[ p ]++;
+    if (!m_Initialized)
+      {
+      m_Initialized = true;
+      m_RankIt = m_Map.begin();
+      m_Entries = m_Below = 0;
+      m_RankValue = p;
+      }
     if (m_Compare(p, m_RankValue) || p == m_RankValue)
       {
       ++m_Below;
       }
     ++m_Entries;
-    if (!m_Initialized)
-      {
-      std::cout << "Initialized" << std::endl;
-      m_Initialized = true;
-      m_RankIt = m_Map.begin();
-      }
   }
 
   void RemovePixel(const TInputPixel &p)
@@ -133,12 +136,20 @@ public:
       --m_Below;
       }
     --m_Entries;
+    // this is the change that makes this version less efficient. The
+    // simplest approach I can think of with maps, though
+    if (m_Entries <= 0)
+      {
+      m_Initialized = false;
+      m_Below = 0;
+      m_Map.clear();
+      }
   }
  
-  void Initialize()
-  {
-    m_RankIt = m_Map.begin();
-  }
+//   void Initialize()
+//   {
+//     m_RankIt = m_Map.begin();
+//   }
 
   TInputPixel GetRankValue()
   {
@@ -147,8 +158,6 @@ public:
     unsigned long ThisBin;
     bool eraseFlag = false;
 
-    if (!m_Initialized)
-      std::cout << "Called too early" << std::endl;
 
 #if 0
     // print out the histogram (debugging)
