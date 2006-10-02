@@ -101,7 +101,8 @@ simple summary statistic, such as the sum, it is necessary to update a
 more complex ordered data structure that allows the rank of interest
 to be accessed quickly. Histograms are the obvious choice. The rank
 filters in this article use a vector based histogram for 8 and 16 bit
-data types and a c++ map for larger types. 
+data types and a c++ map for larger types. This idea was first
+introduced by Huang, 79.
 
 \section{The filters}
 The filters provided in this article are:
@@ -145,7 +146,11 @@ existing ITK filters in the border region.
 \subsection{Improvements}
 The code used for sliding windows is general purpose. Performance
 could be improved further by developing code restricted to line
-operations.
+operations. A faster approache to rank filtering employing more
+complex decomposition has been described recently, but the
+implementation appears very tedious. I'd recommend testing whether
+separable approximations are appropriate for your application before
+heading down that route.
 
 \appendix
 
