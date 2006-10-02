@@ -33,7 +33,7 @@ colorlinks,linkcolor={blue},citecolor={blue},urlcolor={blue},
 
 % The title should be descriptive enough for people to be able to find
 % the relevant document. 
-\title{}
+\title{Sliding windows for fast rank and mean filters}
 
 % Increment the release number whenever significant changes are made.
 % The author and/or editor can define 'significant' however they like.
@@ -41,8 +41,8 @@ colorlinks,linkcolor={blue},citecolor={blue},urlcolor={blue},
 
 % At minimum, give your name and an email address.  You can include a
 % snail-mail address if you like.
-\author{}
-\authoraddress{}
+\author{Richard Beare}
+\authoraddress{Richard.Beare@ieee.org}
 
 \begin{document}
 \maketitle
@@ -56,36 +56,96 @@ colorlinks,linkcolor={blue},citecolor={blue},urlcolor={blue},
 \noindent
 % The abstract should be a paragraph or two long, and describe the
 % scope of the document.
+The performance of a variety of useful linear and nonlinear filters
+can be greatly improved using separable or recursive
+implementations. This article presents accelerated implementations of
+mean and rank filters using well known recursive formulations. Masked
+versions of the rank filters, as well as separable approximations are
+also provided.
 \end{abstract}
 
 \tableofcontents
 
+\section{Introduction}
+The mean and median filters in ITK are based on neighborhood iterators
+leading to complexities of $O(n^d)$ for operations on a $d$
+dimensional cubic kernel for the mean filter and something similar,
+but dependent on the sorting algorithm, for the median filter. 
 
-% \url{http://www.itk.org}
-% \code{Insight/Documentation/Style.pdf}
-% \section{Principles of Solar Spot Detection}
-% \cite{ITKSoftwareGuide}.
-% \doxygen{ImageToImageFilter}
+Recursive implementations of both filters are well known and improve
+performance to approximately $O(n^{d-1})$.
 
-% \small \begin{verbatim}
-% \end{verbatim} \normalsize
+The filters provided in this article use the sliding window
+architecture from the consolidatedMorhpology article.
 
+\section{Basic theory}
+The basic theory behind the algorithms is very simple and won't be
+described rigorously here. The basic concept is to improve performance
+by eliminating redundancy between adjacent pixels. The algorithm for
+the mean filter is:
+\begin{itemize}
+\item Consider neighboring pixels $i$ and $j$ and kernel $K$. $P_i$ 
+      denotes the set of pixels covered by the kernel at location $i$.
+\item Compute the sum of pixels in set $P_i$: $S_i = \sum P_i$
+\item Compute the sets $I = P_i \ P_j$ and $O = P_j \ P_i$. These are 
+      the sets of pixels that are not in common between neighboring kernels.
+\item It is now possible to compute $S_j$ as follows: $S_j = S_i + \sum I - \sum O$
+\item Output values are simply computed by dividing the sum by the kernel size.
+\end{itemize}
 
-% The {itemize} environment uses a bullet for each \item.  If you want the 
-% \item's numbered, use the {enumerate} environment instead.
-% \begin{itemize}
-%   \item  Insight Toolkit 2.4.
-%   \item  CMake 2.2
-% \end{itemize}
+The same approach can be used to compute a variance, by maintaining
+the sum of squared pixel values.
 
-% \ref{cthead1}
+Rank filters require a more complex approach. Rather than updating a
+simple summary statistic, such as the sum, it is necessary to update a
+more complex ordered data structure that allows the rank of interest
+to be accessed quickly. Histograms are the obvious choice. The rank
+filters in this article use a vector based histogram for 8 and 16 bit
+data types and a c++ map for larger types. 
 
-\begin{figure}[htbp]
-\centering
-\includegraphics{cthead1}
-\caption{The input image.\label{cthead1}}
-\end{figure}
+\section{The filters}
+The filters provided in this article are:
+\begin{itemize}
+\item {\bf itkMovingHistogramRankImageFilter}
+\item {\bf itkMovingWindowMeanImageFilter}
+\item {\bf itkMaskedMovingHistogramRankImageFilter}
+\item {\bf itkFastApproxRankImageFilter}
+\item {\bf itkFastApproxMaskRankImageFilter}
+\end{itemize}
 
+itkMovingHistogramRankImageFilter, itkMovingWindowMeanImageFilter and
+itkMaskedMovingHistogramRankImageFilter all support arbitary kernel
+shapes and any scalar data type. Usage is fairly standard for this
+class of filter, and tests illustrating their usage are available in
+the associated archive. itkMaskedMovingHistogramRankImageFilter is a
+slightly unusual filter that computes kernel ranks with restrictions
+defined by a mask. The output for pixel $i$ is defined as the median
+(or other rank) of the set of pixels defined by the intersection of
+the mask and $K_i$.
+
+itkFastApproxRankImageFilter and itkFastApproxMaskRankImageFilter are
+experiments with separable implementations of rank filters. Rank
+operations are not separable, but the difference may be irrelevant for
+some applications. These filters apply a series of one dimensional
+kernels (one for each dimension of the image) in a cascade to
+approximate a rectangular kernel. This approach has a complexity that
+is essentially independent of kernel size and therefore may be useful
+in applications requiring large kernels.
+
+Separable mean filters can also be implemented using the same approach
+and are not approximations.
+
+\section{Application specific details}
+\subsection{Boundary conditions}
+These filters implement different boundary conditions to the
+equivalent ITK filters. The boundary conditions crop the kernel as it
+approaches the edge. Therefore the outputs are different to the
+existing ITK filters in the border region.
+
+\subsection{Improvements}
+The code used for sliding windows is general purpose. Performance
+could be improved further by developing code restricted to line
+operations.
 
 \appendix
 

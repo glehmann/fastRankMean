@@ -1,6 +1,6 @@
 
 # you should use the title of the article instead
-ARTICLE_TITLE = A Great Article For The Insight Journal
+ARTICLE_TITLE = Sliding windows for fast rank and mean filters
 
 # spaces are not allowed
 empty:=
