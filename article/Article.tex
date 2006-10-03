@@ -72,8 +72,8 @@ leading to complexities of $O(n^d)$ for operations on a $d$
 dimensional cubic kernel for the mean filter and something similar,
 but dependent on the sorting algorithm, for the median filter. 
 
-Recursive implementations of both filters are well known and improve
-performance to approximately $O(n^{d-1})$.
+Recursive implementations of both filters are well known
+\cite{Huang79} and improve performance to approximately $O(n^{d-1})$.
 
 The filters provided in this article use the sliding window
 architecture from the consolidatedMorhpology article.
@@ -101,8 +101,7 @@ simple summary statistic, such as the sum, it is necessary to update a
 more complex ordered data structure that allows the rank of interest
 to be accessed quickly. Histograms are the obvious choice. The rank
 filters in this article use a vector based histogram for 8 and 16 bit
-data types and a c++ map for larger types. This idea was first
-introduced by Huang, 79.
+data types and a c++ map for larger types.
 
 \section{The filters}
 The filters provided in this article are:
@@ -115,7 +114,7 @@ The filters provided in this article are:
 \end{itemize}
 
 itkMovingHistogramRankImageFilter, itkMovingWindowMeanImageFilter and
-itkMaskedMovingHistogramRankImageFilter all support arbitary kernel
+itkMaskedMovingHistogramRankImageFilter all support arbitrary kernel
 shapes and any scalar data type. Usage is fairly standard for this
 class of filter, and tests illustrating their usage are available in
 the associated archive. itkMaskedMovingHistogramRankImageFilter is a
@@ -135,6 +134,28 @@ in applications requiring large kernels.
 
 Separable mean filters can also be implemented using the same approach
 and are not approximations.
+\section{Performance metrics}
+Timings achieved using {\bf perfMedian} and {\bf perfMedianB} are
+summarized below. The tests were carried out on a $512 \times 512$
+lena image on a AMD Athlon 64 3000+, 1.8GHz with 512KB cache and 4GB RAM.
+
+\begin{table}[htbp]
+\centering
+\begin{tabular}{|c|c|c|c|}
+\hline
+Radius & Traditional & Huang & Separable \\
+\hline
+\hline
+1    &   0.145 &  0.134 &  0.0329 \\
+5    &   0.878 &  0.322 &  0.0311 \\
+10   &   3.41  &  0.299 &  0.0179 \\
+15   &   8.39  &  0.424 &  0.0185 \\
+20   &   16.5  &  0.547 &  0.0182 \\
+40   &   96.9  &  1.04  &  0.0178 \\
+\hline
+\end{tabular}
+\caption{Execution times. \label{tbl:perf}}
+\end{table}
 
 \section{Application specific details}
 \subsection{Boundary conditions}
@@ -144,10 +165,11 @@ approaches the edge. Therefore the outputs are different to the
 existing ITK filters in the border region.
 
 \subsection{Improvements}
-The code used for sliding windows is general purpose. Performance
-could be improved further by developing code restricted to line
-operations. A faster approache to rank filtering employing more
-complex decomposition has been described recently, but the
+The code used for sliding windows is general purpose and supports
+arbitary shapes. Performance could be improved further by developing
+code restricted to line operations, or rectangular kernels for mean
+operations. A faster approach to rank filtering employing more complex
+decomposition has been described recently \cite{Weiss}, but the
 implementation appears very tedious. I'd recommend testing whether
 separable approximations are appropriate for your application before
 heading down that route.
@@ -157,7 +179,7 @@ heading down that route.
 
 
 \bibliographystyle{plain}
-\bibliography{InsightJournal}
+\bibliography{InsightJournal,local}
 \nocite{ITKSoftwareGuide}
 
 \end{document}
