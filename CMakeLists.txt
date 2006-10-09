@@ -83,7 +83,7 @@ ADD_EXECUTABLE(${CurrentExe} ${CurrentExe}.cxx)
 TARGET_LINK_LIBRARIES(${CurrentExe} ${Libraries})
 
 ENDFOREACH(CurrentExe)
-FOREACH(CurrentExe "test2DSepMedian" "test2DSepMaskMedian" "perfMedianB")
+FOREACH(CurrentExe "test2DSepMedian" "test2DSepMaskMedian")
 
 ADD_EXECUTABLE(${CurrentExe} ${CurrentExe}.cxx)
 TARGET_LINK_LIBRARIES(${CurrentExe} ${Libraries})
