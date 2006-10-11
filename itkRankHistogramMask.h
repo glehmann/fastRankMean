@@ -39,7 +39,7 @@ public:
 //  virtual void Initialize(){};
   //virtual TInputPixel GetValue(){}
 
-  virtual TInputPixel GetRankValue(){}
+  virtual TInputPixel GetRankValue(bool &OK){}
 
   void SetRank(float rank)
   {
@@ -151,7 +151,7 @@ public:
 //     m_RankIt = m_Map.begin();
 //   }
 
-  TInputPixel GetRankValue()
+  TInputPixel GetRankValue(bool &OK)
   {
     unsigned long target = (int)(this->m_Rank * (m_Entries-1)) + 1;
     unsigned long total = m_Below;
@@ -170,73 +170,81 @@ public:
 
     std::cout << "{" << m_Below << "," << target << "," << m_RankIt->first << "}" << std::endl;
 #endif
-    if (total < target)
+    if (m_Initialized)
       {
-      typename MapType::iterator searchIt = m_RankIt;
-      typename MapType::iterator eraseIt;
-      
-      while (searchIt != m_Map.end())
+      OK=true;
+      if (total < target)
 	{
-	// cleaning up the map - probably a better way of organising
-	// the loop. Currently makes sure that the search iterator is
-	// incremented before deleting
-	++searchIt;
-	ThisBin = searchIt->second;
-	total += ThisBin;
-	if (eraseFlag)
+	typename MapType::iterator searchIt = m_RankIt;
+	typename MapType::iterator eraseIt;
+	
+	while (searchIt != m_Map.end())
 	  {
-	  m_Map.erase(eraseIt);
-	  eraseFlag = false;
+	  // cleaning up the map - probably a better way of organising
+	  // the loop. Currently makes sure that the search iterator is
+	  // incremented before deleting
+	  ++searchIt;
+	  ThisBin = searchIt->second;
+	  total += ThisBin;
+	  if (eraseFlag)
+	    {
+	    m_Map.erase(eraseIt);
+	    eraseFlag = false;
+	    }
+	  if (ThisBin <= 0)
+	    {
+	    eraseFlag = true;
+	    eraseIt = searchIt;
+	    }
+	  if (total >= target)
+	    break;
 	  }
-	if (ThisBin <= 0)
-	  {
-	  eraseFlag = true;
-	  eraseIt = searchIt;
-	  }
-	if (total >= target)
-	  break;
+	m_RankValue = searchIt->first;
+	m_RankIt = searchIt;
 	}
-      m_RankValue = searchIt->first;
-      m_RankIt = searchIt;
+      else
+	{
+	typename MapType::iterator searchIt = m_RankIt;
+	typename MapType::iterator eraseIt;
+#if 0
+	std::cout << "+{" << m_Below << "," << target << "," << m_RankIt->first <<"," << m_Map.begin()->first << "}" << std::endl;
+#endif
+	while(searchIt != m_Map.begin())
+	  {
+	  ThisBin = searchIt->second;
+	  unsigned int tbelow = total - ThisBin;
+	  if (tbelow < target) // we've overshot
+	    break;
+	  if (eraseFlag)
+	    {
+	    m_Map.erase(eraseIt);
+	    eraseFlag = false;
+	    }
+	  if (ThisBin <= 0)
+	    {
+	    eraseIt = searchIt;
+	    eraseFlag = true;
+	    }
+	  total = tbelow;				
+// 	std::cout << searchIt->first << std::endl;
+	  
+	  --searchIt;
+	  }
+	m_RankValue = searchIt->first;
+	m_RankIt = searchIt;
+	}
+
+      m_Below = total;
+#if 0
+      std::cout << "*{" << m_Below << "," << target << "," << m_RankIt->first << "}" << std::endl;
+#endif
+      return(m_RankValue);
       }
     else
       {
-      typename MapType::iterator searchIt = m_RankIt;
-      typename MapType::iterator eraseIt;
-#if 0
-      std::cout << "+{" << m_Below << "," << target << "," << m_RankIt->first <<"," << m_Map.begin()->first << "}" << std::endl;
-#endif
-      while(searchIt != m_Map.begin())
-	{
-	ThisBin = searchIt->second;
-	unsigned int tbelow = total - ThisBin;
-	if (tbelow < target) // we've overshot
-	  break;
-	if (eraseFlag)
-	  {
-	  m_Map.erase(eraseIt);
-	  eraseFlag = false;
-	  }
-	if (ThisBin <= 0)
-	  {
-	  eraseIt = searchIt;
-	  eraseFlag = true;
-	  }
-	total = tbelow;				
-// 	std::cout << searchIt->first << std::endl;
-
-	--searchIt;
-	}
-      m_RankValue = searchIt->first;
-      m_RankIt = searchIt;
+      OK=false;
+      return(0);
       }
-
-    m_Below = total;
-#if 0
-    std::cout << "*{" << m_Below << "," << target << "," << m_RankIt->first << "}" << std::endl;
-#endif
-    return(m_RankValue);
-    
 
   }
 
@@ -342,12 +350,18 @@ public:
     return(result);
   }
 
-  TInputPixel GetRankValue()
+  TInputPixel GetRankValue(bool &OK)
   {
     unsigned long target = (int)(this->m_Rank * (m_Entries-1)) + 1;
     unsigned long total = m_Below;
     long unsigned int pos = (long unsigned int)(m_RankValue - NumericTraits< TInputPixel >::NonpositiveMin()); 
 
+    if (m_Entries <= 0)
+      {
+      OK = false;
+      return(0);
+      }
+    OK=true;
     if (total < target)
       {
       while (pos < m_Size)

@@ -3,6 +3,10 @@
 
 #include "itkImageToImageFilter.h"
 #include "itkMaskedMovingHistogramRankImageFilter.h"
+#include "itkMaskedExternMovingHistogramRankImageFilter.h"
+#include "itkNotImageFilter.h"
+#include "itkMaskNegatedImageFilter.h"
+#include "itkImageFileWriter.h"
 
 namespace itk {
 
@@ -70,6 +74,9 @@ public:
   itkSetMacro(Rank, float);
   itkGetMacro(Rank, float);
 
+  itkSetMacro(WriteInsideMask, bool);
+  itkGetMacro(WriteInsideMask, bool);
+
   void GenerateInputRequestedRegion() ;
 
 protected:
@@ -85,6 +92,8 @@ private:
   float m_Rank;
   RadiusType m_Radius;
 
+  bool m_WriteInsideMask;
+
   typedef typename itk::Neighborhood<bool, TInputImage::ImageDimension> KernelType;
 
   KernelType m_kernels[TInputImage::ImageDimension];
@@ -99,6 +108,21 @@ private:
 							     KernelType> RankType2;
   typename RankType1::Pointer m_firstFilt;
   typename RankType2::Pointer m_otherFilts[TInputImage::ImageDimension - 1];
+
+  // the stuff for filling holes
+  typedef typename itk::MaskedExternMovingHistogramRankImageFilter<TInputImage, 
+								   TMaskImage, 
+								   TInputImage, 
+								   KernelType> ERankType1;
+
+  typename ERankType1::Pointer m_EFilts[TInputImage::ImageDimension];
+
+  typedef typename itk::MaskNegatedImageFilter<TInputImage, TMaskImage, TOutputImage> MaskType;
+
+  typedef typename itk::ImageFileWriter<TMaskImage> WriterType;
+  typename WriterType::Pointer m_Writer;
+  typename MaskType::Pointer m_MaskFilt;
+  
 };
 
 }

@@ -13,10 +13,17 @@ FastApproxMaskRankImageFilter<TInputImage, TMaskImage, TOutputImage>
   m_Rank = 0.5;
   m_Radius.Fill(5);  // an arbitary starting point
   m_firstFilt = RankType1::New();
+  m_WriteInsideMask = true;
   for (unsigned i = 0; i < TInputImage::ImageDimension - 1; i++)
     {
     m_otherFilts[i] = RankType2::New();
     }
+  for (unsigned i = 0; i < TInputImage::ImageDimension; i++)
+    {
+    m_EFilts[i] = ERankType1::New();
+    }
+  m_MaskFilt = MaskType::New();
+  m_Writer = WriterType::New();
 }
 template<class TInputImage, class TMaskImage, class TOutputImage>
 void
@@ -39,7 +46,7 @@ FastApproxMaskRankImageFilter<TInputImage, TMaskImage, TOutputImage>
 
   if ( !maskPtr)
     {
-    std::cout << "mask null" << std::endl;
+    std::cout << "FAM: mask null" << std::endl;
     return;
     }
   // get a copy of the input requested region (should equal the output
@@ -112,45 +119,90 @@ FastApproxMaskRankImageFilter<TInputImage, TMaskImage, TOutputImage>
   ProgressAccumulator::Pointer progress = ProgressAccumulator::New();
   progress->SetMiniPipelineFilter(this);
   this->AllocateOutputs();
-  // set up the pipeline
-  for (unsigned i = 0; i < TInputImage::ImageDimension - 1; i++)
+  if (m_WriteInsideMask)
     {
-    if (i > 0) 
+    // set up the pipeline
+    for (unsigned i = 0; i < TInputImage::ImageDimension - 1; i++)
       {
-      m_otherFilts[i]->SetInput(m_otherFilts[i-1]->GetOutput());
-      m_otherFilts[i]->SetMaskImage(this->GetMaskImage());
+      if (i > 0) 
+	{
+	m_otherFilts[i]->SetInput(m_otherFilts[i-1]->GetOutput());
+	m_otherFilts[i]->SetMaskImage(this->GetMaskImage());
+	m_otherFilts[i]->SetRank(m_Rank);
+	}
       }
+    m_firstFilt->SetInput(this->GetInput());
+    m_firstFilt->SetMaskImage(this->GetMaskImage());
+    m_firstFilt->SetRank(m_Rank);
+    m_otherFilts[0]->SetInput( m_firstFilt->GetOutput() );
+    m_otherFilts[0]->SetMaskImage(this->GetMaskImage());
+    m_otherFilts[0]->SetRank(m_Rank);
+    // set up the kernels
+    for (unsigned i = 0; i< TInputImage::ImageDimension; i++)
+      {
+      RadiusType ThisRad;
+      ThisRad.Fill(0);
+      ThisRad[i] = m_Radius[i];
+      m_kernels[i].SetRadius(ThisRad);
+      for( typename KernelType::Iterator kit=m_kernels[i].Begin(); kit!=m_kernels[i].End(); kit++ )
+	{
+	*kit=1;
+	}
+      if (i==0) 
+	{
+	m_firstFilt->SetKernel(m_kernels[i]);
+	progress->RegisterInternalFilter(m_firstFilt, 1.0/TInputImage::ImageDimension);
+	} 
+      else
+	{
+	m_otherFilts[i-1]->SetKernel(m_kernels[i]);
+	progress->RegisterInternalFilter(m_otherFilts[i-1], 1.0/TInputImage::ImageDimension);
+	}
+      }
+    
+    m_otherFilts[TInputImage::ImageDimension - 2]->Update();
+    this->GraftOutput(m_otherFilts[TInputImage::ImageDimension - 2]->GetOutput());
     }
-  m_firstFilt->SetInput(this->GetInput());
-  m_firstFilt->SetMaskImage(this->GetMaskImage());
-  m_otherFilts[0]->SetInput( m_firstFilt->GetOutput() );
-  m_otherFilts[0]->SetMaskImage(this->GetMaskImage());
-
-  // set up the kernels
-  for (unsigned i = 0; i< TInputImage::ImageDimension; i++)
+  else
     {
-    RadiusType ThisRad;
-    ThisRad.Fill(0);
-    ThisRad[i] = m_Radius[i];
-    m_kernels[i].SetRadius(ThisRad);
-    for( typename KernelType::Iterator kit=m_kernels[i].Begin(); kit!=m_kernels[i].End(); kit++ )
+    
+    m_EFilts[0]->SetInput(this->GetInput());
+    m_EFilts[0]->SetMaskImage(this->GetMaskImage());
+    m_EFilts[0]->SetRank(m_Rank);
+    for (unsigned i = 1; i < TInputImage::ImageDimension; i++)
       {
-      *kit=1;
+      m_EFilts[i]->SetInput(m_EFilts[i-1]->GetOutputImage());
+      m_EFilts[i]->SetMaskImage(m_EFilts[i-1]->GetOutputMask());
+      m_EFilts[i]->SetRank(m_Rank);
       }
-    if (i==0) 
+    
+    // set up kernels
+    for (unsigned i = 0; i< TInputImage::ImageDimension; i++)
       {
-      m_firstFilt->SetKernel(m_kernels[i]);
-      progress->RegisterInternalFilter(m_firstFilt, 1.0/TInputImage::ImageDimension);
-      } 
-    else
-      {
-      m_otherFilts[i-1]->SetKernel(m_kernels[i]);
-      progress->RegisterInternalFilter(m_otherFilts[i-1], 1.0/TInputImage::ImageDimension);
+      RadiusType ThisRad;
+      ThisRad.Fill(0);
+      ThisRad[i] = m_Radius[i];
+      m_kernels[i].SetRadius(ThisRad);
+      for( typename KernelType::Iterator kit=m_kernels[i].Begin(); kit!=m_kernels[i].End(); kit++ )
+	{
+	*kit=1;
+	}
+	m_EFilts[i]->SetKernel(m_kernels[i]);
+	progress->RegisterInternalFilter(m_EFilts[i], 1.0/TInputImage::ImageDimension);
       }
-    }
+    m_MaskFilt->SetInput(m_EFilts[TInputImage::ImageDimension - 1]->GetOutput());
+    m_MaskFilt->SetInput2(this->GetMaskImage());
+    m_MaskFilt->Update();
 
-  m_otherFilts[TInputImage::ImageDimension - 2]->Update();
-  this->GraftOutput(m_otherFilts[TInputImage::ImageDimension - 2]->GetOutput());
+
+//     typename MaskImageType::Pointer lastmask = m_EFilts[TInputImage::ImageDimension - 1]->GetOutputMask();
+//     lastmask->Update();
+    // temporarily write the output mask to complete the pipeline
+//     m_Writer->SetInput(m_EFilts[TInputImage::ImageDimension - 1]->GetOutputMask());
+//     m_Writer->SetFileName("/tmp/out.nii");
+//     m_Writer->Update();
+    this->GraftOutput(m_MaskFilt->GetOutput());
+    }
 }
 
 }

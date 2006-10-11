@@ -108,8 +108,10 @@ public:
   itkGetConstReferenceMacro(Kernel, KernelType);
   
   itkGetMacro(PixelsPerTranslation, unsigned long);
-  itkSetMacro(Rank, float)
-  itkGetMacro(Rank, float)
+  itkSetMacro(Rank, float);
+  itkGetMacro(Rank, float);
+
+
   /** MaskedMovingHistogramRankImageFilterBase need to make sure they request enough of an
    * input image to account for the structuring element size.  The input
    * requested region is expanded by the radius of the structuring element.
@@ -173,8 +175,8 @@ protected:
     // too much memory. Other types are not usable with that algorithm
     return typeid(InputPixelType) == typeid(unsigned char)
       || typeid(InputPixelType) == typeid(signed char)
-      || typeid(InputPixelType) == typeid(unsigned short)
-      || typeid(InputPixelType) == typeid(signed short)
+//       || typeid(InputPixelType) == typeid(unsigned short)
+//       || typeid(InputPixelType) == typeid(signed short)
       || typeid(InputPixelType) == typeid(bool);
   }
 
@@ -184,7 +186,6 @@ private:
   void operator=(const Self&); //purposely not implemented
 
   float m_Rank;
-
   class DirectionCost {
     public :
     DirectionCost( int dimension, int count )

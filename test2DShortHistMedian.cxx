@@ -9,7 +9,7 @@
 
 int main(int, char * argv[])
 {
-  const int dim = 2;
+  const int dim = 3;
   
   typedef short PType;
   typedef itk::Image< PType, dim > IType;
@@ -25,7 +25,7 @@ int main(int, char * argv[])
 
 
   KType kernel;
-  kernel.SetRadius(10);
+  kernel.SetRadius(2);
   for( KType::Iterator kit=kernel.Begin(); kit!=kernel.End(); kit++ )
     {
     *kit=1;
@@ -43,6 +43,7 @@ int main(int, char * argv[])
     HTime.Stop();
     }
 
+#if 0
   typedef itk::ImageFileWriter< IType > WriterType;
   WriterType::Pointer writer = WriterType::New();
   writer->SetInput( filter->GetOutput() );
@@ -67,6 +68,7 @@ int main(int, char * argv[])
   writer->SetFileName( argv[4] );
   writer->Update();
   std::cout << "Traditional time " << TTime.GetMeanTime() << std::endl;
+#endif
   std::cout << "Huang time " << HTime.GetMeanTime() << std::endl;
   return 0;
 }

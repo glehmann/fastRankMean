@@ -4,7 +4,7 @@
 #include "itkSimpleFilterWatcher.h"
 #include "itkNeighborhood.h"
 #include "itkFastApproxMaskRankImageFilter.h"
-
+#include "itkMultiThreader.h"
 #include "itkTimeProbe.h"
 
 int main(int, char * argv[])
@@ -39,6 +39,8 @@ int main(int, char * argv[])
   filter->SetInput( reader->GetOutput() );
   filter->SetMaskImage(mreader->GetOutput());
   filter->SetRadius(Radius);
+  filter->SetWriteInsideMask(false);
+  filter->SetNumberOfThreads(1);
   for (unsigned i=0;i<repeats; i++)
     {
     HTime.Start();

@@ -265,7 +265,7 @@ MovingHistogramRankImageFilter<TInputImage, TOutputImage, TKernel>
     }
 
   // get the map based version set up properly
-  ThisHist->Initialize();
+  //ThisHist->Initialize();
   // look up the median so that the internal structures are set up
   // before copies are made. This should improve the performance in
   // 16bit vector histograms

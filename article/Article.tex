@@ -121,7 +121,8 @@ the associated archive. itkMaskedMovingHistogramRankImageFilter is a
 slightly unusual filter that computes kernel ranks with restrictions
 defined by a mask. The output for pixel $i$ is defined as the median
 (or other rank) of the set of pixels defined by the intersection of
-the mask and $K_i$.
+the mask and $K_i$. The {\bf WriteInsideMask} option controls whether
+the output voxels are defined by the mask or its inverse.
 
 itkFastApproxRankImageFilter and itkFastApproxMaskRankImageFilter are
 experiments with separable implementations of rank filters. Rank

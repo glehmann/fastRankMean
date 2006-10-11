@@ -1,7 +1,7 @@
 /*=========================================================================
 
   Program:   Insight Segmentation & Registration Toolkit
-  Module:    $RCSfile: itkMaskedMovingHistogramRankImageFilter.txx,v $
+  Module:    $RCSfile: itkMaskedExternMovingHistogramRankImageFilter.txx,v $
   Language:  C++
   Date:      $Date: 2004/04/30 21:02:03 $
   Version:   $Revision: 1.14 $
@@ -14,10 +14,10 @@
      PURPOSE.  See the above copyright notices for more information.
 
 =========================================================================*/
-#ifndef __itkMaskedMovingHistogramRankImageFilter_txx
-#define __itkMaskedMovingHistogramRankImageFilter_txx
+#ifndef __itkMaskedExternMovingHistogramRankImageFilter_txx
+#define __itkMaskedExternMovingHistogramRankImageFilter_txx
 
-#include "itkMaskedMovingHistogramRankImageFilter.h"
+#include "itkMaskedExternMovingHistogramRankImageFilter.h"
 #include "itkImageRegionIteratorWithIndex.h"
 #include "itkOffset.h"
 #include "itkProgressReporter.h"
@@ -33,17 +33,67 @@ namespace itk {
 
 
 template<class TInputImage, class TMaskImage, class TOutputImage, class TKernel>
-MaskedMovingHistogramRankImageFilter<TInputImage, TMaskImage, TOutputImage, TKernel>
-::MaskedMovingHistogramRankImageFilter()
+MaskedExternMovingHistogramRankImageFilter<TInputImage, TMaskImage, TOutputImage, TKernel>
+::MaskedExternMovingHistogramRankImageFilter()
   : m_Kernel()
 {
   m_PixelsPerTranslation = 0;
   m_Rank = 0.5; 
+  this->SetNumberOfRequiredInputs( 2 );
+  this->SetNumberOfRequiredOutputs( 2 );
+#if 0
+  typename MaskImageType::Pointer maskout = static_cast<MaskImageType * >(this->MakeOutput(1).GetPointer());
+  typename OutputImageType::Pointer outimage = static_cast<OutputImageType*>(this->MakeOutput(0).GetPointer());
+#else
+  typename MaskImageType::Pointer maskout = TMaskImage::New();
+  typename OutputImageType::Pointer outimage = TOutputImage::New();
+#endif
+  this->SetNthOutput( 1, maskout.GetPointer() );
+  this->SetNthOutput( 0, outimage.GetPointer());
+  m_FillValue = 0;
 }
 
+#if 1
 template<class TInputImage, class TMaskImage, class TOutputImage, class TKernel>
 void
-MaskedMovingHistogramRankImageFilter<TInputImage, TMaskImage, TOutputImage, TKernel>
+MaskedExternMovingHistogramRankImageFilter<TInputImage, TMaskImage, TOutputImage, TKernel>
+::AllocateOutputs()
+{
+  //Superclass::AllocateOutputs();
+  // Allocate the output image.
+  typename TOutputImage::Pointer output = this->GetOutputImage();
+  output->SetBufferedRegion( output->GetRequestedRegion() );
+  output->Allocate();
+//   // Allocate the output mask image.
+  typename TMaskImage::Pointer mask = this->GetOutputMask();
+  mask->SetBufferedRegion( mask->GetRequestedRegion() );
+  mask->Allocate();
+}
+
+#endif
+
+#if 1
+template <class TInputImage, class TMaskImage, class TOutputImage, class TKernel>
+DataObject::Pointer
+MaskedExternMovingHistogramRankImageFilter<TInputImage, TMaskImage, TOutputImage, TKernel>
+::MakeOutput(unsigned int idx)
+{
+  DataObject::Pointer output;
+  switch( idx )
+    {
+    case 0:
+      output = (TOutputImage::New()).GetPointer();
+      break;
+    case 1:
+      output = (TMaskImage::New()).GetPointer();
+      break;
+    }
+  return output.GetPointer();
+}
+#endif
+template<class TInputImage, class TMaskImage, class TOutputImage, class TKernel>
+void
+MaskedExternMovingHistogramRankImageFilter<TInputImage, TMaskImage, TOutputImage, TKernel>
 ::GenerateInputRequestedRegion()
 {
   // call the superclass' implementation of this method
@@ -63,7 +113,7 @@ MaskedMovingHistogramRankImageFilter<TInputImage, TMaskImage, TOutputImage, TKer
 
   if ( !maskPtr)
     {
-    std::cout << "MM: mask null" << std::endl;
+    std::cout << "MEM: mask null" << std::endl;
     return;
     }
   // get a copy of the input requested region (should equal the output
@@ -128,9 +178,28 @@ MaskedMovingHistogramRankImageFilter<TInputImage, TMaskImage, TOutputImage, TKer
     }
 }
 
+template <class TInputImage, class TMaskImage, class TOutputImage, class TKernel>
+typename MaskedExternMovingHistogramRankImageFilter<TInputImage, TMaskImage, TOutputImage, TKernel>::MaskImageType *
+MaskedExternMovingHistogramRankImageFilter<TInputImage, TMaskImage, TOutputImage, TKernel>
+::GetOutputMask( void )
+{
+  
+  typename MaskImageType::Pointer res = dynamic_cast<MaskImageType *>(this->ProcessObject::GetOutput( 1 ));
+  return res;
+}
+
+template <class TInputImage, class TMaskImage, class TOutputImage, class TKernel>
+typename MaskedExternMovingHistogramRankImageFilter<TInputImage, TMaskImage, TOutputImage, TKernel>::OutputImageType *
+MaskedExternMovingHistogramRankImageFilter<TInputImage, TMaskImage, TOutputImage, TKernel>
+::GetOutputImage( void )
+{
+  typename OutputImageType::Pointer res = static_cast<OutputImageType *>(this->GetOutput( 0 ) );
+  return res;
+}
+
 template<class TInputImage, class TMaskImage, class TOutputImage, class TKernel>
 void
-MaskedMovingHistogramRankImageFilter<TInputImage, TMaskImage, TOutputImage, TKernel>
+MaskedExternMovingHistogramRankImageFilter<TInputImage, TMaskImage, TOutputImage, TKernel>
 ::SetKernel( const KernelType& kernel )
 {
   // first, build the list of offsets of added and removed pixels when the 
@@ -263,7 +332,7 @@ MaskedMovingHistogramRankImageFilter<TInputImage, TMaskImage, TOutputImage, TKer
 // faster due to improved memory access and a tighter loop.
 template<class TInputImage, class TMaskImage, class TOutputImage, class TKernel>
 void
-MaskedMovingHistogramRankImageFilter<TInputImage, TMaskImage, TOutputImage, TKernel>
+MaskedExternMovingHistogramRankImageFilter<TInputImage, TMaskImage, TOutputImage, TKernel>
 ::ThreadedGenerateData(const OutputImageRegionType& outputRegionForThread,
                        int threadId) 
 {
@@ -271,7 +340,8 @@ MaskedMovingHistogramRankImageFilter<TInputImage, TMaskImage, TOutputImage, TKer
   // instantiate the histogram
   //HistogramType histogram = this->NewHistogram();
     
-  OutputImageType* outputImage = this->GetOutput();
+  OutputImageType* outputImage = this->GetOutputImage();
+  MaskImageType * outputMask = this->GetOutputMask();
   const InputImageType* inputImage = this->GetInput();
   const MaskImageType *maskImage = this->GetMaskImage();
 
@@ -361,26 +431,30 @@ MaskedMovingHistogramRankImageFilter<TInputImage, TMaskImage, TOutputImage, TKer
     {
     HistogramType *histRef = HistVec[BestDirection];
     IndexType PrevLineStart = InLineIt.GetIndex();
+    
     for (InLineIt.GoToBeginOfLine(); !InLineIt.IsAtEndOfLine(); ++InLineIt)
       {
-      
       // Update the histogram
       IndexType currentIdx = InLineIt.GetIndex();
       MaskPixelType Msk = maskImage->GetPixel(currentIdx);
       bool OK;
-      if (Msk) 
-	{		
-	//outputImage->SetPixel(currentIdx, 1);
-	outputImage->SetPixel(currentIdx, static_cast< OutputPixelType >( histRef->GetRankValue(OK) ));
-	}	
+      OutputPixelType NewVal = static_cast< OutputPixelType >( histRef->GetRankValue(OK));
+
+      //std::cout << currentIdx << std::endl;
+      if (OK)
+	{
+	outputImage->SetPixel(currentIdx, NewVal);
+	outputMask->SetPixel(currentIdx, 1);
+	}
       else
-	{	
-	outputImage->SetPixel(currentIdx, 0);
+	{
+	outputImage->SetPixel(currentIdx, m_FillValue);
+	outputMask->SetPixel(currentIdx, 0);
 	}
       stRegion.SetIndex( currentIdx - centerOffset );
       pushHistogram(histRef, addedList, removedList, inputRegion, 
 		    stRegion, inputImage, maskImage, currentIdx);
-
+      
       }
     Steps[BestDirection] += LineLength;
     InLineIt.NextLine();
@@ -436,7 +510,7 @@ MaskedMovingHistogramRankImageFilter<TInputImage, TMaskImage, TOutputImage, TKer
 
 template<class TInputImage, class TMaskImage, class TOutputImage, class TKernel>
 void
-MaskedMovingHistogramRankImageFilter<TInputImage, TMaskImage, TOutputImage, TKernel>
+MaskedExternMovingHistogramRankImageFilter<TInputImage, TMaskImage, TOutputImage, TKernel>
 ::pushHistogram(HistogramType *histogram, 
 		const OffsetListType* addedList,
 		const OffsetListType* removedList,
@@ -510,7 +584,7 @@ MaskedMovingHistogramRankImageFilter<TInputImage, TMaskImage, TOutputImage, TKer
 
 template<class TInputImage, class TMaskImage, class TOutputImage, class TKernel>
 void
-MaskedMovingHistogramRankImageFilter<TInputImage, TMaskImage, TOutputImage, TKernel>
+MaskedExternMovingHistogramRankImageFilter<TInputImage, TMaskImage, TOutputImage, TKernel>
 ::printHist(const HistogramType *H)
 {
 /*  std::cout << "Hist = " ;
@@ -524,7 +598,7 @@ MaskedMovingHistogramRankImageFilter<TInputImage, TMaskImage, TOutputImage, TKer
 
 template<class TInputImage, class TMaskImage, class TOutputImage, class TKernel>
 void
-MaskedMovingHistogramRankImageFilter<TInputImage, TMaskImage, TOutputImage, TKernel>
+MaskedExternMovingHistogramRankImageFilter<TInputImage, TMaskImage, TOutputImage, TKernel>
 ::GetDirAndOffset(const IndexType LineStart, 
 		  const IndexType PrevLineStart,
 		  const int ImageDimension,
@@ -553,7 +627,7 @@ MaskedMovingHistogramRankImageFilter<TInputImage, TMaskImage, TOutputImage, TKer
 
 template<class TInputImage, class TMaskImage, class TOutputImage, class TKernel>
 void
-MaskedMovingHistogramRankImageFilter<TInputImage, TMaskImage, TOutputImage, TKernel>
+MaskedExternMovingHistogramRankImageFilter<TInputImage, TMaskImage, TOutputImage, TKernel>
 ::PrintSelf(std::ostream &os, Indent indent) const
 {
   Superclass::PrintSelf(os, indent);

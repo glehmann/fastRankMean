@@ -338,7 +338,6 @@ public:
     unsigned long target = (int)(this->m_Rank * (m_Entries-1)) + 1;
     unsigned long total = m_Below;
     long unsigned int pos = (long unsigned int)(m_RankValue - NumericTraits< TInputPixel >::NonpositiveMin()); 
-
     if (total < target)
       {
       while (pos < m_Size)
