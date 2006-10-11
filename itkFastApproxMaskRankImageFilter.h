@@ -18,6 +18,10 @@ namespace itk {
  * to be relatively quick then it is worthwhile pretending that they
  * are.
  *
+ * This filter has the option of computing medians of regions outside
+ * the mask, based on values inside the mask. i.e if (i,j) is not
+ * in the mask, but some of the pixels in the kernel centred on (i,j)
+ * are, then output pixel (i,j) will be the median of those pixels.
  * \author Richard Beare
  */
 
@@ -77,6 +81,11 @@ public:
   itkSetMacro(WriteInsideMask, bool);
   itkGetMacro(WriteInsideMask, bool);
 
+  // if WriteInsideMask is false then the option is to return just the
+  // region outside the mask or both inside and outside
+  itkSetMacro(ReturnUnion, bool);
+  itkGetMacro(ReturnUnion, bool);
+
   void GenerateInputRequestedRegion() ;
 
 protected:
@@ -93,7 +102,7 @@ private:
   RadiusType m_Radius;
 
   bool m_WriteInsideMask;
-
+  bool m_ReturnUnion;
   typedef typename itk::Neighborhood<bool, TInputImage::ImageDimension> KernelType;
 
   KernelType m_kernels[TInputImage::ImageDimension];
@@ -117,11 +126,13 @@ private:
 
   typename ERankType1::Pointer m_EFilts[TInputImage::ImageDimension];
 
-  typedef typename itk::MaskNegatedImageFilter<TInputImage, TMaskImage, TOutputImage> MaskType;
+  typedef typename itk::MaskNegatedImageFilter<TInputImage, TMaskImage, TOutputImage> NegMaskType;
+  typedef typename itk::MaskImageFilter<TInputImage, TMaskImage, TOutputImage> MaskType;
 
   typedef typename itk::ImageFileWriter<TMaskImage> WriterType;
   typename WriterType::Pointer m_Writer;
   typename MaskType::Pointer m_MaskFilt;
+  typename NegMaskType::Pointer m_NegMaskFilt;
   
 };
 

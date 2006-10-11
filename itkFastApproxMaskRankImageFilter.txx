@@ -14,6 +14,7 @@ FastApproxMaskRankImageFilter<TInputImage, TMaskImage, TOutputImage>
   m_Radius.Fill(5);  // an arbitary starting point
   m_firstFilt = RankType1::New();
   m_WriteInsideMask = true;
+  m_ReturnUnion = false;
   for (unsigned i = 0; i < TInputImage::ImageDimension - 1; i++)
     {
     m_otherFilts[i] = RankType2::New();
@@ -23,6 +24,7 @@ FastApproxMaskRankImageFilter<TInputImage, TMaskImage, TOutputImage>
     m_EFilts[i] = ERankType1::New();
     }
   m_MaskFilt = MaskType::New();
+  m_NegMaskFilt = NegMaskType::New();
   m_Writer = WriterType::New();
 }
 template<class TInputImage, class TMaskImage, class TOutputImage>
@@ -190,9 +192,20 @@ FastApproxMaskRankImageFilter<TInputImage, TMaskImage, TOutputImage>
 	m_EFilts[i]->SetKernel(m_kernels[i]);
 	progress->RegisterInternalFilter(m_EFilts[i], 1.0/TInputImage::ImageDimension);
       }
-    m_MaskFilt->SetInput(m_EFilts[TInputImage::ImageDimension - 1]->GetOutput());
-    m_MaskFilt->SetInput2(this->GetMaskImage());
-    m_MaskFilt->Update();
+    if (this->GetReturnUnion())
+      {
+      m_MaskFilt->SetInput(m_EFilts[TInputImage::ImageDimension - 1]->GetOutput());
+      m_MaskFilt->SetInput2(m_EFilts[TInputImage::ImageDimension - 1]->GetOutputMask());
+      m_MaskFilt->Update();
+      this->GraftOutput(m_MaskFilt->GetOutput());
+      }
+    else
+      {
+      m_NegMaskFilt->SetInput(m_EFilts[TInputImage::ImageDimension - 1]->GetOutput());
+      m_NegMaskFilt->SetInput2(this->GetMaskImage());
+      m_NegMaskFilt->Update();
+      this->GraftOutput(m_NegMaskFilt->GetOutput());
+      }
 
 
 //     typename MaskImageType::Pointer lastmask = m_EFilts[TInputImage::ImageDimension - 1]->GetOutputMask();
@@ -201,7 +214,6 @@ FastApproxMaskRankImageFilter<TInputImage, TMaskImage, TOutputImage>
 //     m_Writer->SetInput(m_EFilts[TInputImage::ImageDimension - 1]->GetOutputMask());
 //     m_Writer->SetFileName("/tmp/out.nii");
 //     m_Writer->Update();
-    this->GraftOutput(m_MaskFilt->GetOutput());
     }
 }
 
