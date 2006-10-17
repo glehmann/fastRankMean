@@ -68,6 +68,18 @@ public:
     return static_cast<MaskImageType*>(const_cast<DataObject *>(this->ProcessObject::GetInput(1)));
     }
 
+   /** Set the input image */
+  void SetInput1(InputImageType *input)
+     {
+     this->SetInput( input );
+     }
+
+   /** Set the marker image */
+  void SetInput2(MaskImageType *input)
+     {
+     this->SetMaskImage( input );
+     }
+
   /** Image related typedefs. */
   itkStaticConstMacro(ImageDimension, unsigned int,
                       TInputImage::ImageDimension);
