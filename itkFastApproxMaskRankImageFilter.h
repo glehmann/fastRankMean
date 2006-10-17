@@ -6,6 +6,7 @@
 #include "itkMaskedExternMovingHistogramRankImageFilter.h"
 #include "itkNotImageFilter.h"
 #include "itkMaskNegatedImageFilter.h"
+#include "itkMaskImageFilter.h"
 #include "itkImageFileWriter.h"
 
 namespace itk {
