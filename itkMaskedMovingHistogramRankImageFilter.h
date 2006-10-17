@@ -83,6 +83,18 @@ public:
     }
 
 
+   /** Set the input image */
+  void SetInput1(InputImageType *input)
+     {
+     this->SetInput( input );
+     }
+
+   /** Set the marker image */
+  void SetInput2(MaskImageType *input)
+     {
+     this->SetMaskImage( input );
+     }
+
 
   /** Image related typedefs. */
   itkStaticConstMacro(ImageDimension, unsigned int,
