@@ -17,7 +17,7 @@ int main(int, char * argv[])
   typedef unsigned short MPType;
   typedef itk::Image< MPType, dim > MType;
 
-  int repeats = atoi(argv[1]);
+  unsigned repeats = (unsigned)atoi(argv[1]);
   itk::TimeProbe HTime, TTime;
 
   typedef itk::ImageFileReader< IType > ReaderType;

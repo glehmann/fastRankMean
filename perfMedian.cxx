@@ -17,7 +17,7 @@ int main(int, char * argv[])
   typedef unsigned char PType;
   typedef itk::Image< PType, dim > IType;
 
-  int repeats = atoi(argv[1]);
+  unsigned repeats = (unsigned)atoi(argv[1]);
 
   // set up the radius
   typedef std::vector<int> IVec;

@@ -15,7 +15,7 @@ int main(int, char * argv[])
   typedef itk::Image< PType, dim > IType;
   itk::TimeProbe HTime, TTime;
 
-  int repeats = atoi(argv[1]);
+  unsigned repeats = (unsigned)atoi(argv[1]);
 
   typedef itk::ImageFileReader< IType > ReaderType;
   ReaderType::Pointer reader = ReaderType::New();
@@ -43,7 +43,6 @@ int main(int, char * argv[])
     HTime.Stop();
     }
 
-#if 0
   typedef itk::ImageFileWriter< IType > WriterType;
   WriterType::Pointer writer = WriterType::New();
   writer->SetInput( filter->GetOutput() );
@@ -68,7 +67,6 @@ int main(int, char * argv[])
   writer->SetFileName( argv[4] );
   writer->Update();
   std::cout << "Traditional time " << TTime.GetMeanTime() << std::endl;
-#endif
   std::cout << "Huang time " << HTime.GetMeanTime() << std::endl;
   return 0;
 }

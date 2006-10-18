@@ -221,7 +221,7 @@ MaskedExternMovingHistogramRankImageFilter<TInputImage, TMaskImage, TOutputImage
 
   // create a center index to compute the offset
   IndexType centerIndex;
-  for( int axis=0; axis<ImageDimension; axis++)
+  for( unsigned axis=0; axis<ImageDimension; axis++)
     { centerIndex[axis] = kernel.GetSize()[axis] / 2; }
   
   unsigned long count = 0;
@@ -260,7 +260,7 @@ MaskedExternMovingHistogramRankImageFilter<TInputImage, TMaskImage, TOutputImage
   typename itk::FixedArray< unsigned long, ImageDimension > axisCount;
   axisCount.Fill( 0 );
 
-  for( int axis=0; axis<ImageDimension; axis++)
+  for( unsigned axis=0; axis<ImageDimension; axis++)
     {
     OffsetType refOffset;
     refOffset.Fill( 0 );
@@ -312,7 +312,7 @@ MaskedExternMovingHistogramRankImageFilter<TInputImage, TMaskImage, TOutputImage
     // search for the best axis
     typedef typename std::set<DirectionCost> MapCountType;
     MapCountType invertedCount;
-    for( int i=0; i<ImageDimension; i++ )
+    for( unsigned i=0; i<ImageDimension; i++ )
       {
       invertedCount.insert( DirectionCost( i, axisCount[i] ) );
       }
@@ -388,7 +388,7 @@ MaskedExternMovingHistogramRankImageFilter<TInputImage, TMaskImage, TOutputImage
   stRegion.PadByRadius( 1 ); // must pad the region by one because of the translation
   
   OffsetType centerOffset;
-  for( int axis=0; axis<ImageDimension; axis++)
+  for( unsigned axis=0; axis<ImageDimension; axis++)
     { centerOffset[axis] = stRegion.GetSize()[axis] / 2; }
   
   int BestDirection = this->m_Axes[axis];
@@ -420,7 +420,7 @@ MaskedExternMovingHistogramRankImageFilter<TInputImage, TMaskImage, TOutputImage
   // iterator passes over the various dimensions.
   int *Steps = new int[ImageDimension];
   
-  for (int i=0;i<ImageDimension;i++)
+  for (unsigned i=0;i<ImageDimension;i++)
     {
     HistVec[i] = ThisHist->Clone();
     PrevLineStartVec[i] = InLineIt.GetIndex();
@@ -436,7 +436,7 @@ MaskedExternMovingHistogramRankImageFilter<TInputImage, TMaskImage, TOutputImage
       {
       // Update the histogram
       IndexType currentIdx = InLineIt.GetIndex();
-      MaskPixelType Msk = maskImage->GetPixel(currentIdx);
+      //MaskPixelType Msk = maskImage->GetPixel(currentIdx);
       bool OK;
       OutputPixelType NewVal = static_cast< OutputPixelType >( histRef->GetRankValue(OK));
 
@@ -489,7 +489,7 @@ MaskedExternMovingHistogramRankImageFilter<TInputImage, TMaskImage, TOutputImage
     // copy the updated histogram and line start entries to the
     // relevant directions. When updating direction 2, for example,
     // new copies of directions 0 and 1 should be made.
-    for (int i=0;i<ImageDimension;i++) 
+    for (unsigned i=0;i<ImageDimension;i++) 
       {
       if (Steps[i] > Steps[LineDirection])
 	{
@@ -500,7 +500,7 @@ MaskedExternMovingHistogramRankImageFilter<TInputImage, TMaskImage, TOutputImage
       }
     progress.CompletedPixel();
     }
-  for (int i=0;i<ImageDimension;i++) 
+  for (unsigned i=0;i<ImageDimension;i++) 
     {
     delete(HistVec[i]);
     }

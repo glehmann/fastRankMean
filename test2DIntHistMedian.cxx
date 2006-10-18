@@ -11,7 +11,7 @@ int main(int, char * argv[])
 {
   const int dim = 2;
   
-  int repeats = atoi(argv[1]);
+  unsigned repeats = (unsigned)atoi(argv[1]);
 
   typedef int PType;
   typedef itk::Image< PType, dim > IType;

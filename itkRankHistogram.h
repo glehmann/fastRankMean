@@ -23,7 +23,7 @@ public:
   }
   virtual ~RankHistogram(){}
 
-  virtual RankHistogram *Clone(){}
+  virtual RankHistogram *Clone(){return 0;}
   
   virtual void Reset(){}
     
@@ -37,7 +37,7 @@ public:
   virtual void Initialize(){};
   //virtual TInputPixel GetValue(){}
 
-  virtual TInputPixel GetRankValue(){}
+  virtual TInputPixel GetRankValue(){return 0;}
 
   void SetRank(float rank)
   {
@@ -385,7 +385,7 @@ public:
   void RemovePixel(const TInputPixel &p)
   {
     assert(p - NumericTraits< TInputPixel >::NonpositiveMin() >= 0);
-    assert(p - NumericTraits< TInputPixel >::NonpositiveMin() < m_Vec.size());
+    assert(p - NumericTraits< TInputPixel >::NonpositiveMin() < (int)m_Vec.size());
     assert(m_Entries >= 1);
     m_Vec[ (long unsigned int)(p - NumericTraits< TInputPixel >::NonpositiveMin())  ]--; 
     --m_Entries;
