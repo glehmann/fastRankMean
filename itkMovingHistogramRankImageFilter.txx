@@ -28,6 +28,8 @@
 #include "itkImageRegionConstIteratorWithIndex.h"
 #include "itkImageLinearConstIteratorWithIndex.h"
 
+#include <iomanip>
+#include <sstream>
 
 namespace itk {
 
@@ -234,6 +236,12 @@ MovingHistogramRankImageFilter<TInputImage, TOutputImage, TKernel>
   
   // instantiate the histogram
   //HistogramType histogram = this->NewHistogram();
+//   std::ofstream debug;
+//   std::ostringstream osm(""); // filename
+//   osm << "/tmp/log" << std::setw(4) << std::setfill('0') << threadId;
+//   debug.open(osm.str().c_str());
+
+//   debug << threadId << " " << outputRegionForThread << std::endl;
     
   OutputImageType* outputImage = this->GetOutput();
   const InputImageType* inputImage = this->GetInput();
@@ -257,7 +265,10 @@ MovingHistogramRankImageFilter<TInputImage, TOutputImage, TKernel>
     {
     IndexType idx = outputRegionForThread.GetIndex() + (*listIt);
     if( inputRegion.IsInside( idx ) )
-      { ThisHist->AddPixel( inputImage->GetPixel(idx) ); }
+      { 
+      ThisHist->AddPixel( inputImage->GetPixel(idx) ); 
+//       debug << threadId << " Init " << idx << std::endl;
+      }
     else
       { 
       //histogram.AddBoundary(); 
@@ -287,6 +298,7 @@ MovingHistogramRankImageFilter<TInputImage, TOutputImage, TKernel>
     { centerOffset[axis] = stRegion.GetSize()[axis] / 2; }
   
   int BestDirection = this->m_Axes[axis];
+
   int LineLength = inputRegion.GetSize()[BestDirection];
   
   // Report progress every line instead of every pixel
@@ -326,12 +338,16 @@ MovingHistogramRankImageFilter<TInputImage, TOutputImage, TKernel>
     {
     HistogramType *histRef = HistVec[BestDirection];
     IndexType PrevLineStart = InLineIt.GetIndex();
+//     debug << threadId << " " << PrevLineStart << std::endl;
     for (InLineIt.GoToBeginOfLine(); !InLineIt.IsAtEndOfLine(); ++InLineIt)
       {
       
       // Update the historgram
       IndexType currentIdx = InLineIt.GetIndex();
-      outputImage->SetPixel(currentIdx, static_cast< OutputPixelType >( histRef->GetRankValue() ));
+      InputPixelType V = histRef->GetRankValue();
+//       debug << threadId << " " << currentIdx << " " << (int)V << std::endl;
+//       debug << histRef->PrintHist();
+      outputImage->SetPixel(currentIdx, static_cast< OutputPixelType >( V ));
       stRegion.SetIndex( currentIdx - centerOffset );
       pushHistogram(histRef, addedList, removedList, inputRegion, 
 		    stRegion, inputImage, currentIdx);
@@ -387,6 +403,7 @@ MovingHistogramRankImageFilter<TInputImage, TOutputImage, TKernel>
     }
   delete(ThisHist);
   delete [] Steps;
+//   debug.close();
 }
 
 template<class TInputImage, class TOutputImage, class TKernel>

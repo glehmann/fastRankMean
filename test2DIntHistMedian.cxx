@@ -26,7 +26,7 @@ int main(int, char * argv[])
   itk::TimeProbe HTime, TTime;
 
   KType kernel;
-  kernel.SetRadius(10);
+  kernel.SetRadius(1);
   for( KType::Iterator kit=kernel.Begin(); kit!=kernel.End(); kit++ )
     {
     *kit=1;

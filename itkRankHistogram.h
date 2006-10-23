@@ -13,6 +13,8 @@ namespace itk {
 // Support for different TCompare hasn't been tested, and shouldn't be
 // necessary for the rank filters.
 //
+#include <sstream>
+
 template <class TInputPixel>
 class RankHistogram
 {
@@ -48,6 +50,9 @@ public:
   {
     m_Boundary = val; 
   }
+
+//   virtual std::string PrintHist(){return("");}
+
 protected:
   TInputPixel  m_Boundary;
   float m_Rank;
@@ -112,17 +117,18 @@ public:
   void AddPixel(const TInputPixel &p)
   {
     m_Map[ p ]++;
+    ++m_Entries;
+    if (!m_Initialized)
+      {
+      m_Initialized = true;
+      m_RankIt = m_Map.begin();
+      m_RankValue = p;
+      }
     if (m_Compare(p, m_RankValue) || p == m_RankValue)
       {
       ++m_Below;
       }
-    ++m_Entries;
-    if (!m_Initialized)
-      {
-      std::cout << "Initialized" << std::endl;
-      m_Initialized = true;
-      m_RankIt = m_Map.begin();
-      }
+
   }
 
   void RemovePixel(const TInputPixel &p)
@@ -140,6 +146,21 @@ public:
     m_RankIt = m_Map.begin();
   }
 
+//   std::string PrintHist()
+//   {
+//     std::ostringstream result;
+//     // print out the histogram (debugging)
+//     for (typename MapType::iterator pIt = m_Map.begin(); pIt != m_Map.end(); pIt++)
+//       {
+//       if (pIt->second > 0)
+// 	result << "[" << pIt->first << "," << pIt->second << "]" ;
+//       }
+//     result << std::endl;
+
+//     result << "{" << m_Below << "," << m_RankIt->first << "}" << std::endl;
+//     return(result.str());
+//   }
+
   TInputPixel GetRankValue()
   {
     unsigned long target = (int)(this->m_Rank * (m_Entries-1)) + 1;
@@ -155,11 +176,11 @@ public:
     for (typename MapType::iterator pIt = m_Map.begin(); pIt != m_Map.end(); pIt++)
       {
       if (pIt->second > 0)
-	std::cout << "[" << pIt->first << "," << pIt->second << "]" ;
+	this->m_Debug << "[" << pIt->first << "," << pIt->second << "]" ;
       }
-    std::cout << std::endl;
+    this->m_Debug << std::endl;
 
-    std::cout << "{" << m_Below << "," << target << "," << m_RankIt->first << "}" << std::endl;
+    this->m_Debug << "{" << m_Below << "," << target << "," << m_RankIt->first << "}" << std::endl;
 #endif
     if (total < target)
       {
@@ -338,6 +359,7 @@ public:
     unsigned long target = (int)(this->m_Rank * (m_Entries-1)) + 1;
     unsigned long total = m_Below;
     long unsigned int pos = (long unsigned int)(m_RankValue - NumericTraits< TInputPixel >::NonpositiveMin()); 
+
     if (total < target)
       {
       while (pos < m_Size)

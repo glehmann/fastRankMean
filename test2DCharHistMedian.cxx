@@ -25,7 +25,7 @@ int main(int, char * argv[])
 
 
   KType kernel;
-  kernel.SetRadius(2);
+  kernel.SetRadius(1);
   for( KType::Iterator kit=kernel.Begin(); kit!=kernel.End(); kit++ )
     {
     *kit=1;

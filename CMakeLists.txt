@@ -105,7 +105,7 @@ ENDIF(BUILD_TESTING)
 
 ADD_TEST(test2Dchar test2DCharHistMedian 1 ${INPUT_IMAGE} chr_hist.png chr_std.png)
 ADD_TEST(test2Dshort test2DShortHistMedian 1 ${INPUT_IMAGE} shrt_hist.nii chr_std.nii)
-ADD_TEST(test2Dint test2DCharHistMedian 1 ${INPUT_IMAGE} int_hist.nii chr_std.nii)
+ADD_TEST(test2Dint test2DIntHistMedian 1 ${INPUT_IMAGE} int_hist.nii chr_std.nii)
 
 ADD_TEST(compChrShrt ${IMAGE_COMPARE} chr_hist.png shrt_hist.nii)
 ADD_TEST(compChrInt ${IMAGE_COMPARE} chr_hist.png int_hist.nii)

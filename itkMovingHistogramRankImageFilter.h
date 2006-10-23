@@ -172,8 +172,8 @@ protected:
     // too much memory. Other types are not usable with that algorithm
     return typeid(InputPixelType) == typeid(unsigned char)
       || typeid(InputPixelType) == typeid(signed char)
-      //|| typeid(InputPixelType) == typeid(unsigned short)
-      //|| typeid(InputPixelType) == typeid(signed short)
+//       || typeid(InputPixelType) == typeid(unsigned short)
+//       || typeid(InputPixelType) == typeid(signed short)
       || typeid(InputPixelType) == typeid(bool);
   }
 
