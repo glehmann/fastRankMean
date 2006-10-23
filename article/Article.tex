@@ -61,7 +61,8 @@ can be greatly improved using separable or recursive
 implementations. This article presents accelerated implementations of
 mean and rank filters using well known recursive formulations. Masked
 versions of the rank filters, as well as separable approximations are
-also provided.
+also provided. The filters are threaded, and arbitarily shaped kernels
+can be used for the standard versions.
 \end{abstract}
 
 \tableofcontents
@@ -100,8 +101,11 @@ Rank filters require a more complex approach. Rather than updating a
 simple summary statistic, such as the sum, it is necessary to update a
 more complex ordered data structure that allows the rank of interest
 to be accessed quickly. Histograms are the obvious choice. The rank
-filters in this article use a vector based histogram for 8 and 16 bit
-data types and a c++ map for larger types.
+filters in this article use a vector based histogram for 8 bit data
+types and a c++ map for larger types. Map based implementations appear
+to perform better for 16 bit data types, which is counter
+intuitive. The bad performance of vector based histograms for 16 bit
+types may relate to cache performance.
 
 \section{The filters}
 The filters provided in this article are:
@@ -122,7 +126,10 @@ slightly unusual filter that computes kernel ranks with restrictions
 defined by a mask. The output for pixel $i$ is defined as the median
 (or other rank) of the set of pixels defined by the intersection of
 the mask and $K_i$. The {\bf WriteInsideMask} option controls whether
-the output voxels are defined by the mask or its inverse.
+the output voxels are defined by the mask or its inverse. This is an
+experimental filter originally intended for estimating bias correction
+fields when tissue type information is available. It could also be
+used for filling holes and so on.
 
 itkFastApproxRankImageFilter and itkFastApproxMaskRankImageFilter are
 experiments with separable implementations of rank filters. Rank
@@ -171,9 +178,9 @@ arbitary shapes. Performance could be improved further by developing
 code restricted to line operations, or rectangular kernels for mean
 operations. A faster approach to rank filtering employing more complex
 decomposition has been described recently \cite{Weiss}, but the
-implementation appears very tedious. I'd recommend testing whether
-separable approximations are appropriate for your application before
-heading down that route.
+implementation appears very tedious and limited to rectangles. I'd
+recommend testing whether separable approximations are appropriate for
+your application before heading down that route.
 
 \appendix
 
