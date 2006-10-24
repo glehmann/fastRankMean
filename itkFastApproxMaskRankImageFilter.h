@@ -141,8 +141,8 @@ private:
   typedef typename itk::MaskNegatedImageFilter<TInputImage, TMaskImage, TOutputImage> NegMaskType;
   typedef typename itk::MaskImageFilter<TInputImage, TMaskImage, TOutputImage> MaskType;
 
-  typedef typename itk::ImageFileWriter<TMaskImage> WriterType;
-  typename WriterType::Pointer m_Writer;
+/*  typedef typename itk::ImageFileWriter<TMaskImage> WriterType;
+  typename WriterType::Pointer m_Writer;*/
   typename MaskType::Pointer m_MaskFilt;
   typename NegMaskType::Pointer m_NegMaskFilt;
   

@@ -25,7 +25,7 @@ FastApproxMaskRankImageFilter<TInputImage, TMaskImage, TOutputImage>
     }
   m_MaskFilt = MaskType::New();
   m_NegMaskFilt = NegMaskType::New();
-  m_Writer = WriterType::New();
+/*  m_Writer = WriterType::New();*/
 }
 template<class TInputImage, class TMaskImage, class TOutputImage>
 void
