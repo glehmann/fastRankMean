@@ -27,34 +27,24 @@ public:
 
   virtual RankHistogram *Clone(){return 0;}
   
-  virtual void Reset(){}
-    
   virtual void AddPixel(const TInputPixel &p){}
 
   virtual void RemovePixel(const TInputPixel &p){}
  
-  // For the map based version - to be called after there is some data
-  // included. Meant to be an optimization so that the rank value
-  // iterator is properly set.
-  virtual void Initialize(){};
-  //virtual TInputPixel GetValue(){}
+  void AddBoundary(){}
 
-  virtual TInputPixel GetRankValue(){return 0;}
+  void RemoveBoundary(){}
+ 
+  virtual TInputPixel GetValue(){return 0;}
 
   void SetRank(float rank)
   {
     m_Rank = rank;
   }
 
-  void SetBoundary( const TInputPixel & val )
-  {
-    m_Boundary = val; 
-  }
-
 //   virtual std::string PrintHist(){return("");}
 
 protected:
-  TInputPixel  m_Boundary;
   float m_Rank;
 };
 
@@ -71,6 +61,7 @@ private:
   bool m_Initialized;
   // This iterator will point at the desired rank value
   typename MapType::iterator m_RankIt;
+
 public:
   RankHistogramMap() 
   {
@@ -93,27 +84,6 @@ public:
   {
   }
 
-  RankHistogramMap *Clone()
-  {
-    RankHistogramMap *result = new RankHistogramMap();
-    result->m_Map = this->m_Map;
-    result->m_Rank = this->m_Rank;
-    result->m_Below = this->m_Below;
-    result->m_Entries = this->m_Entries;
-    result->m_InitVal = this->m_InitVal;
-    result->m_RankValue = this->m_RankValue;
-    result->m_Initialized = this->m_Initialized;
-    if (result->m_Initialized)
-      result->m_RankIt = result->m_Map.find(this->m_RankValue);
-    return(result);
-  }
-  void Reset()
-  {
-    m_Map.clear();
-    m_RankValue = m_InitVal;
-    m_Entries = m_Below = 0;
-  }
-    
   void AddPixel(const TInputPixel &p)
   {
     m_Map[ p ]++;
@@ -146,42 +116,16 @@ public:
     m_RankIt = m_Map.begin();
   }
 
-//   std::string PrintHist()
-//   {
-//     std::ostringstream result;
-//     // print out the histogram (debugging)
-//     for (typename MapType::iterator pIt = m_Map.begin(); pIt != m_Map.end(); pIt++)
-//       {
-//       if (pIt->second > 0)
-// 	result << "[" << pIt->first << "," << pIt->second << "]" ;
-//       }
-//     result << std::endl;
-
-//     result << "{" << m_Below << "," << m_RankIt->first << "}" << std::endl;
-//     return(result.str());
-//   }
-
-  TInputPixel GetRankValue()
+  TInputPixel GetValue()
   {
     unsigned long target = (int)(this->m_Rank * (m_Entries-1)) + 1;
     unsigned long total = m_Below;
     unsigned long ThisBin;
     bool eraseFlag = false;
 
-    if (!m_Initialized)
-      std::cout << "Called too early" << std::endl;
+    // an assert is better than a log message in that case
+    assert(m_Initialized);
 
-#if 0
-    // print out the histogram (debugging)
-    for (typename MapType::iterator pIt = m_Map.begin(); pIt != m_Map.end(); pIt++)
-      {
-      if (pIt->second > 0)
-	this->m_Debug << "[" << pIt->first << "," << pIt->second << "]" ;
-      }
-    this->m_Debug << std::endl;
-
-    this->m_Debug << "{" << m_Below << "," << target << "," << m_RankIt->first << "}" << std::endl;
-#endif
     if (total < target)
       {
       typename MapType::iterator searchIt = m_RankIt;
@@ -215,9 +159,7 @@ public:
       {
       typename MapType::iterator searchIt = m_RankIt;
       typename MapType::iterator eraseIt;
-#if 0
-      std::cout << "+{" << m_Below << "," << target << "," << m_RankIt->first <<"," << m_Map.begin()->first << "}" << std::endl;
-#endif
+
       while(searchIt != m_Map.begin())
 	{
 	ThisBin = searchIt->second;
@@ -244,42 +186,11 @@ public:
       }
 
     m_Below = total;
-#if 0
-    std::cout << "*{" << m_Below << "," << target << "," << m_RankIt->first << "}" << std::endl;
-#endif
+
     return(m_RankValue);
-    
 
   }
 
-#if 0
-  TInputPixel GetValue()
-  {    // clean the map
-    typename MapType::iterator mapIt = m_Map.begin();
-    while( mapIt != m_Map.end() )
-      {
-      if( mapIt->second <= 0 )
-        {
-        // this value must be removed from the histogram
-        // The value must be stored and the iterator updated before removing the value
-        // or the iterator is invalidated.
-        TInputPixel toErase = mapIt->first;
-        mapIt++;
-        m_Map.erase( toErase );
-        }
-      else
-	{
-        mapIt++;
-        // don't remove all the zero value found, just remove the one before the current maximum value
-        // the histogram may become quite big on real type image, but it's an important increase of performances
-        break;
-        }
-      }
-    
-    // and return the value
-    return m_Map.begin()->first;
-  }
-#endif
 };
 
 template <class TInputPixel, class TCompare>
@@ -340,21 +251,7 @@ public:
   {
   }
 
-  RankHistogramVec *Clone()
-  {
-    RankHistogramVec *result = new RankHistogramVec(true);
-    result->m_Vec = this->m_Vec;
-    result->m_Size = this->m_Size;
-    //result->m_CurrentValue = this->m_CurrentValue;
-    result->m_InitVal = this->m_InitVal;
-    result->m_Entries = this->m_Entries;
-    result->m_Below = this->m_Below;
-    result->m_Rank = this->m_Rank;
-    result->m_RankValue = this->m_RankValue;
-    return(result);
-  }
-
-  TInputPixel GetRankValue()
+  TInputPixel GetValue()
   {
     unsigned long target = (int)(this->m_Rank * (m_Entries-1)) + 1;
     unsigned long total = m_Below;
@@ -387,12 +284,6 @@ public:
     return(m_RankValue);
   }
 
-  void Reset(){
-    std::fill(&(m_Vec[0]), &(m_Vec[m_Size-1]),0);
-    m_RankValue = m_InitVal;
-    m_Entries = m_Below = 0;
-  }
-    
   void AddPixel(const TInputPixel &p)
   {
     long unsigned int idx = (long unsigned int)(p - NumericTraits< TInputPixel >::NonpositiveMin());

@@ -17,7 +17,7 @@
 #ifndef __itkMovingHistogramRankImageFilter_h
 #define __itkMovingHistogramRankImageFilter_h
 
-#include "itkImageToImageFilter.h"
+#include "itkMovingHistogramImageFilter.h"
 #include <list>
 #include <map>
 #include <set>
@@ -55,12 +55,12 @@ namespace itk {
 
 template<class TInputImage, class TOutputImage, class TKernel >
 class ITK_EXPORT MovingHistogramRankImageFilter : 
-    public ImageToImageFilter<TInputImage, TOutputImage>
+    public MovingHistogramImageFilter<TInputImage, TOutputImage, TKernel, RankHistogram< typename TInputImage::PixelType > >
 {
 public:
   /** Standard class typedefs. */
   typedef MovingHistogramRankImageFilter Self;
-  typedef ImageToImageFilter<TInputImage,TOutputImage>  Superclass;
+  typedef MovingHistogramImageFilter<TInputImage,TOutputImage, TKernel, RankHistogram< typename TInputImage::PixelType > >  Superclass;
   typedef SmartPointer<Self>        Pointer;
   typedef SmartPointer<const Self>  ConstPointer;
   
@@ -69,7 +69,7 @@ public:
 
   /** Runtime information support. */
   itkTypeMacro(MovingHistogramRankImageFilter, 
-               ImageToImageFilter);
+               MovingHistogramImageFilter);
   
   /** Image related typedefs. */
   typedef TInputImage InputImageType;
@@ -96,26 +96,8 @@ public:
   /** n-dimensional Kernel radius. */
   typedef typename KernelType::SizeType RadiusType ;
 
-  typedef typename std::list< OffsetType > OffsetListType;
-
-  typedef typename std::map< OffsetType, OffsetListType, typename Functor::OffsetLexicographicCompare<ImageDimension> > OffsetMapType;
-
-  /** Set kernel (structuring element). */
-  void SetKernel( const KernelType& kernel );
-
-  /** Get the kernel (structuring element). */
-  itkGetConstReferenceMacro(Kernel, KernelType);
-  
-  itkGetMacro(PixelsPerTranslation, unsigned long);
-  
   itkSetMacro(Rank, float)
   itkGetMacro(Rank, float)
-  /** MovingHistogramRankImageFilterBase need to make sure they request enough of an
-   * input image to account for the structuring element size.  The input
-   * requested region is expanded by the radius of the structuring element.
-   * If the request extends past the LargestPossibleRegion for the input,
-   * the request is cropped by the LargestPossibleRegion. */
-  void GenerateInputRequestedRegion() ;
 
 protected:
   MovingHistogramRankImageFilter();
@@ -126,46 +108,8 @@ protected:
   typedef RankHistogramVec<InputPixelType, std::less< InputPixelType> > VHistogram;
   typedef RankHistogramMap<InputPixelType, std::less< InputPixelType>  > MHistogram;
   
-  
-  /** Multi-thread version GenerateData. */
-  void  ThreadedGenerateData (const OutputImageRegionType& 
-                              outputRegionForThread,
-                              int threadId) ;
-  
   void PrintSelf(std::ostream& os, Indent indent) const;
   
-  /** kernel or structuring element to use. */
-  KernelType m_Kernel ;
-  
-  // store the added and removed pixel offset in a list
-  OffsetMapType m_AddedOffsets;
-  OffsetMapType m_RemovedOffsets;
-
-  // store the offset of the kernel to initialize the histogram
-  OffsetListType m_KernelOffsets;
-
-  typename itk::FixedArray< int, ImageDimension > m_Axes;
-
-  unsigned long m_PixelsPerTranslation;
-
-
-  void pushHistogram(HistogramType *histogram, 
-		     const OffsetListType* addedList,
-		     const OffsetListType* removedList,
-		     const RegionType &inputRegion,
-		     const RegionType &kernRegion,
-		     const InputImageType* inputImage,
-		     const IndexType currentIdx);
-
-  void printHist(const HistogramType *H);
-
-  void GetDirAndOffset(const IndexType LineStart, 
-		       const IndexType PrevLineStart,
-		       const int ImageDimension,
-		       OffsetType &LineOffset,
-		       OffsetType &Changes,
-		       int &LineDirection);
-
   bool useVectorBasedHistogram()
   {
     // bool, short and char are acceptable for vector based algorithm: they do not require
@@ -178,37 +122,13 @@ protected:
   }
 
 
+  virtual HistogramType NewHistogram();
+
 private:
   MovingHistogramRankImageFilter(const Self&); //purposely not implemented
   void operator=(const Self&); //purposely not implemented
 
   float m_Rank;
-
-  class DirectionCost {
-    public :
-    DirectionCost( int dimension, int count )
-      {
-      m_Dimension = dimension;
-      m_Count = count;
-      }
-    
-    /**
-     * return true if the object is worst choice for the best axis
-     * than the object in parameter
-     */
-    inline bool operator< ( const DirectionCost &dc ) const
-      {
-      if( m_Count > dc.m_Count )
-        { return true; }
-      else if( m_Count < dc.m_Count )
-	{ return false; }
-      else //if (m_Count == dc.m_Count) 
-	{ return m_Dimension > dc.m_Dimension; }
-      }
-
-    int m_Dimension;
-    int m_Count;
-  };
 
 } ; // end of class
 
