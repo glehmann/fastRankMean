@@ -2,7 +2,7 @@
 #define __itkFastApproxMaskRankImageFilter_h
 
 #include "itkImageToImageFilter.h"
-#include "itkMaskedMovingHistogramRankImageFilter.h"
+#include "itkMaskedRankImageFilter.h"
 #include "itkNotImageFilter.h"
 #include "itkMaskNegatedImageFilter.h"
 #include "itkMaskImageFilter.h"
@@ -118,11 +118,11 @@ private:
 
   KernelType m_kernels[TInputImage::ImageDimension];
   
-  typedef typename itk::MaskedMovingHistogramRankImageFilter<TInputImage, 
+  typedef typename itk::MaskedRankImageFilter<TInputImage, 
 							     TMaskImage, 
 							     TOutputImage, 
 							     KernelType> RankType1;
-  typedef typename itk::MaskedMovingHistogramRankImageFilter<TOutputImage, 
+  typedef typename itk::MaskedRankImageFilter<TOutputImage, 
 							     TMaskImage, 
 							     TOutputImage, 
 							     KernelType> RankType2;
@@ -130,7 +130,7 @@ private:
   typename RankType2::Pointer m_otherFilts[TInputImage::ImageDimension - 1];
 
   // the stuff for filling holes
-  typedef typename itk::MaskedMovingHistogramRankImageFilter<TInputImage, 
+  typedef typename itk::MaskedRankImageFilter<TInputImage, 
 								   TMaskImage, 
 								   TInputImage, 
 								   KernelType> ERankType1;

@@ -3,7 +3,7 @@
 #include "itkCommand.h"
 #include "itkSimpleFilterWatcher.h"
 #include "itkNeighborhood.h"
-#include "itkMovingHistogramRankImageFilter.h"
+#include "itkRankImageFilter.h"
 #include "itkMedianImageFilter.h"
 #include "itkTimeProbe.h"
 
@@ -32,7 +32,7 @@ int main(int, char * argv[])
     *kit=1;
     }
 
-  typedef itk::MovingHistogramRankImageFilter< IType, IType, KType > FilterType;
+  typedef itk::RankImageFilter< IType, IType, KType > FilterType;
   FilterType::Pointer filter = FilterType::New();
   filter->SetInput( reader->GetOutput() );
   filter->SetKernel(kernel);

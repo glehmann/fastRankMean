@@ -1,7 +1,7 @@
 /*=========================================================================
 
   Program:   Insight Segmentation & Registration Toolkit
-  Module:    $RCSfile: itkMovingHistogramRankImageFilter.txx,v $
+  Module:    $RCSfile: itkMaskedRankImageFilter.txx,v $
   Language:  C++
   Date:      $Date: 2004/04/30 21:02:03 $
   Version:   $Revision: 1.14 $
@@ -14,10 +14,10 @@
      PURPOSE.  See the above copyright notices for more information.
 
 =========================================================================*/
-#ifndef __itkMovingHistogramRankImageFilter_txx
-#define __itkMovingHistogramRankImageFilter_txx
+#ifndef __itkMaskedRankImageFilter_txx
+#define __itkMaskedRankImageFilter_txx
 
-#include "itkMovingHistogramRankImageFilter.h"
+#include "itkMaskedRankImageFilter.h"
 #include "itkImageRegionIteratorWithIndex.h"
 #include "itkOffset.h"
 #include "itkProgressReporter.h"
@@ -34,17 +34,17 @@
 namespace itk {
 
 
-template<class TInputImage, class TOutputImage, class TKernel>
-MovingHistogramRankImageFilter<TInputImage, TOutputImage, TKernel>
-::MovingHistogramRankImageFilter()
+template<class TInputImage, class TMaskImage, class TOutputImage, class TKernel >
+MaskedRankImageFilter<TInputImage, TMaskImage, TOutputImage, TKernel>
+::MaskedRankImageFilter()
 {
   m_Rank = 0.5;
 }
 
 
-template<class TInputImage, class TOutputImage, class TKernel>
-typename MovingHistogramRankImageFilter<TInputImage, TOutputImage, TKernel>::HistogramType *
-MovingHistogramRankImageFilter<TInputImage, TOutputImage, TKernel>
+template<class TInputImage, class TMaskImage, class TOutputImage, class TKernel >
+typename MaskedRankImageFilter<TInputImage, TMaskImage, TOutputImage, TKernel>::HistogramType *
+MaskedRankImageFilter<TInputImage, TMaskImage, TOutputImage, TKernel>
 ::NewHistogram()
 {
   HistogramType * hist;
@@ -61,9 +61,9 @@ MovingHistogramRankImageFilter<TInputImage, TOutputImage, TKernel>
 }
 
 
-template<class TInputImage, class TOutputImage, class TKernel>
+template<class TInputImage, class TMaskImage, class TOutputImage, class TKernel >
 void
-MovingHistogramRankImageFilter<TInputImage, TOutputImage, TKernel>
+MaskedRankImageFilter<TInputImage, TMaskImage, TOutputImage, TKernel>
 ::PrintSelf(std::ostream &os, Indent indent) const
 {
   Superclass::PrintSelf(os, indent);

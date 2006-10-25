@@ -1,7 +1,7 @@
 /*=========================================================================
 
   Program:   Insight Segmentation & Registration Toolkit
-  Module:    $RCSfile: itkMaskedMovingHistogramRankImageFilter.h,v $
+  Module:    $RCSfile: itkMaskedRankImageFilter.h,v $
   Language:  C++
   Date:      $Date: 2004/04/30 21:02:03 $
   Version:   $Revision: 1.15 $
@@ -14,8 +14,8 @@
      PURPOSE.  See the above copyright notices for more information.
 
 =========================================================================*/
-#ifndef __itkMaskedMovingHistogramRankImageFilter_h
-#define __itkMaskedMovingHistogramRankImageFilter_h
+#ifndef __itkMaskedRankImageFilter_h
+#define __itkMaskedRankImageFilter_h
 
 #include "itkMaskedMovingHistogramImageFilter.h"
 #include <list>
@@ -27,7 +27,7 @@
 namespace itk {
 
 /**
- * \class MaskedMovingHistogramRankImageFilter
+ * \class MaskedRankImageFilter
  * \brief Rank filter of a greyscale image
  *
  * Nonlinear filter in which each output pixel is a user defined
@@ -54,12 +54,12 @@ namespace itk {
  */
 
 template<class TInputImage, class TMaskImage, class TOutputImage, class TKernel >
-class ITK_EXPORT MaskedMovingHistogramRankImageFilter : 
+class ITK_EXPORT MaskedRankImageFilter : 
     public MaskedMovingHistogramImageFilter<TInputImage, TMaskImage, TOutputImage, TKernel, RankHistogramMask< typename TInputImage::PixelType > >
 {
 public:
   /** Standard class typedefs. */
-  typedef MaskedMovingHistogramRankImageFilter Self;
+  typedef MaskedRankImageFilter Self;
   typedef MaskedMovingHistogramImageFilter<TInputImage, TMaskImage, TOutputImage, TKernel, RankHistogramMask< typename TInputImage::PixelType > >  Superclass;
   typedef SmartPointer<Self>        Pointer;
   typedef SmartPointer<const Self>  ConstPointer;
@@ -68,7 +68,7 @@ public:
   itkNewMacro(Self);  
 
   /** Runtime information support. */
-  itkTypeMacro(MaskedMovingHistogramRankImageFilter, 
+  itkTypeMacro(MaskedRankImageFilter, 
                MovingHistogramImageFilter);
   
   /** Image related typedefs. */
@@ -100,8 +100,8 @@ public:
   itkGetMacro(Rank, float)
 
 protected:
-  MaskedMovingHistogramRankImageFilter();
-  ~MaskedMovingHistogramRankImageFilter() {};
+  MaskedRankImageFilter();
+  ~MaskedRankImageFilter() {};
 
   typedef RankHistogramMask<InputPixelType> HistogramType;
   
@@ -125,7 +125,7 @@ protected:
   virtual HistogramType * NewHistogram();
 
 private:
-  MaskedMovingHistogramRankImageFilter(const Self&); //purposely not implemented
+  MaskedRankImageFilter(const Self&); //purposely not implemented
   void operator=(const Self&); //purposely not implemented
 
   float m_Rank;
@@ -135,7 +135,7 @@ private:
 } // end namespace itk
   
 #ifndef ITK_MANUAL_INSTANTIATION
-#include "itkMaskedMovingHistogramRankImageFilter.txx"
+#include "itkMaskedRankImageFilter.txx"
 #endif
 
 #endif

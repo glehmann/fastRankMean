@@ -2,7 +2,7 @@
 #define __itkFastApproxRankImageFilter_h
 
 #include "itkImageToImageFilter.h"
-#include "itkMovingHistogramRankImageFilter.h"
+#include "itkRankImageFilter.h"
 
 namespace itk {
 
@@ -74,10 +74,10 @@ private:
 
   KernelType m_kernels[TInputImage::ImageDimension];
 
-  typedef typename itk::MovingHistogramRankImageFilter<TInputImage, 
+  typedef typename itk::RankImageFilter<TInputImage, 
 						       TOutputImage, 
 						       KernelType> RankType1;
-  typedef typename itk::MovingHistogramRankImageFilter<TOutputImage, 
+  typedef typename itk::RankImageFilter<TOutputImage, 
 						       TOutputImage, 
 						       KernelType> RankType2;
   typename RankType1::Pointer m_firstFilt;

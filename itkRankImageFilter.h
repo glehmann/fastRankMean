@@ -1,7 +1,7 @@
 /*=========================================================================
 
   Program:   Insight Segmentation & Registration Toolkit
-  Module:    $RCSfile: itkMovingHistogramRankImageFilter.h,v $
+  Module:    $RCSfile: itkRankImageFilter.h,v $
   Language:  C++
   Date:      $Date: 2004/04/30 21:02:03 $
   Version:   $Revision: 1.15 $
@@ -14,8 +14,8 @@
      PURPOSE.  See the above copyright notices for more information.
 
 =========================================================================*/
-#ifndef __itkMovingHistogramRankImageFilter_h
-#define __itkMovingHistogramRankImageFilter_h
+#ifndef __itkRankImageFilter_h
+#define __itkRankImageFilter_h
 
 #include "itkMovingHistogramImageFilter.h"
 #include <list>
@@ -27,7 +27,7 @@
 namespace itk {
 
 /**
- * \class MovingHistogramRankImageFilter
+ * \class RankImageFilter
  * \brief Rank filter of a greyscale image
  *
  * Nonlinear filter in which each output pixel is a user defined
@@ -54,12 +54,12 @@ namespace itk {
  */
 
 template<class TInputImage, class TOutputImage, class TKernel >
-class ITK_EXPORT MovingHistogramRankImageFilter : 
+class ITK_EXPORT RankImageFilter : 
     public MovingHistogramImageFilter<TInputImage, TOutputImage, TKernel, RankHistogram< typename TInputImage::PixelType > >
 {
 public:
   /** Standard class typedefs. */
-  typedef MovingHistogramRankImageFilter Self;
+  typedef RankImageFilter Self;
   typedef MovingHistogramImageFilter<TInputImage,TOutputImage, TKernel, RankHistogram< typename TInputImage::PixelType > >  Superclass;
   typedef SmartPointer<Self>        Pointer;
   typedef SmartPointer<const Self>  ConstPointer;
@@ -68,7 +68,7 @@ public:
   itkNewMacro(Self);  
 
   /** Runtime information support. */
-  itkTypeMacro(MovingHistogramRankImageFilter, 
+  itkTypeMacro(RankImageFilter, 
                MovingHistogramImageFilter);
   
   /** Image related typedefs. */
@@ -100,8 +100,8 @@ public:
   itkGetMacro(Rank, float)
 
 protected:
-  MovingHistogramRankImageFilter();
-  ~MovingHistogramRankImageFilter() {};
+  RankImageFilter();
+  ~RankImageFilter() {};
 
   typedef RankHistogram<InputPixelType> HistogramType;
   
@@ -125,7 +125,7 @@ protected:
   virtual HistogramType * NewHistogram();
 
 private:
-  MovingHistogramRankImageFilter(const Self&); //purposely not implemented
+  RankImageFilter(const Self&); //purposely not implemented
   void operator=(const Self&); //purposely not implemented
 
   float m_Rank;
@@ -135,7 +135,7 @@ private:
 } // end namespace itk
   
 #ifndef ITK_MANUAL_INSTANTIATION
-#include "itkMovingHistogramRankImageFilter.txx"
+#include "itkRankImageFilter.txx"
 #endif
 
 #endif
