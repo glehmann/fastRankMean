@@ -1,4 +1,4 @@
-WRAP_CLASS("itk::MaskedExternMovingHistogramRankImageFilter" POINTER)
+WRAP_CLASS("itk::MaskedRankImageFilter" POINTER_WITH_2_SUPERCLASSES)
   FOREACH(d ${WRAP_ITK_DIMS})
     FOREACH(t ${WRAP_ITK_SCALAR})
       FOREACH(l ${WRAP_ITK_INT})
