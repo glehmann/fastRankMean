@@ -3,7 +3,6 @@
 
 #include "itkImageToImageFilter.h"
 #include "itkMaskedMovingHistogramRankImageFilter.h"
-#include "itkMaskedExternMovingHistogramRankImageFilter.h"
 #include "itkNotImageFilter.h"
 #include "itkMaskNegatedImageFilter.h"
 #include "itkMaskImageFilter.h"
@@ -131,7 +130,7 @@ private:
   typename RankType2::Pointer m_otherFilts[TInputImage::ImageDimension - 1];
 
   // the stuff for filling holes
-  typedef typename itk::MaskedExternMovingHistogramRankImageFilter<TInputImage, 
+  typedef typename itk::MaskedMovingHistogramRankImageFilter<TInputImage, 
 								   TMaskImage, 
 								   TInputImage, 
 								   KernelType> ERankType1;

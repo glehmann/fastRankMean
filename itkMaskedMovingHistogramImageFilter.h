@@ -116,6 +116,20 @@ public:
    * the request is cropped by the LargestPossibleRegion. */
   void GenerateInputRequestedRegion() ;
 
+  /** Get the modified mask image */
+  MaskImageType * GetOutputMask();
+
+  void AllocateOutputs();
+
+  DataObject::Pointer MakeOutput(unsigned int idx);
+
+  itkSetMacro(FillValue, OutputPixelType);
+  itkGetMacro(FillValue, OutputPixelType);
+
+  void SetGenerateOutputMask( bool );
+  itkGetMacro(GenerateOutputMask, bool);
+//   itkBooleanMacro(GenerateOutputMask);
+
 protected:
   MaskedMovingHistogramImageFilter();
   ~MaskedMovingHistogramImageFilter() {};
@@ -140,6 +154,9 @@ private:
   MaskedMovingHistogramImageFilter(const Self&); //purposely not implemented
   void operator=(const Self&); //purposely not implemented
 
+  bool m_GenerateOutputMask;
+
+  OutputPixelType m_FillValue;
 
 } ; // end of class
 

@@ -22,6 +22,7 @@ FastApproxMaskRankImageFilter<TInputImage, TMaskImage, TOutputImage>
   for (unsigned i = 0; i < TInputImage::ImageDimension; i++)
     {
     m_EFilts[i] = ERankType1::New();
+    m_EFilts[i]->SetGenerateOutputMask( true );
     }
   m_MaskFilt = MaskType::New();
   m_NegMaskFilt = NegMaskType::New();
@@ -173,7 +174,7 @@ FastApproxMaskRankImageFilter<TInputImage, TMaskImage, TOutputImage>
     m_EFilts[0]->SetRank(m_Rank);
     for (unsigned i = 1; i < TInputImage::ImageDimension; i++)
       {
-      m_EFilts[i]->SetInput(m_EFilts[i-1]->GetOutputImage());
+      m_EFilts[i]->SetInput(m_EFilts[i-1]->GetOutput());
       m_EFilts[i]->SetMaskImage(m_EFilts[i-1]->GetOutputMask());
       m_EFilts[i]->SetRank(m_Rank);
       }
