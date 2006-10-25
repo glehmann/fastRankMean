@@ -126,6 +126,12 @@ public:
   itkSetMacro(FillValue, OutputPixelType);
   itkGetMacro(FillValue, OutputPixelType);
 
+  itkSetMacro(MaskValue, MaskPixelType);
+  itkGetMacro(MaskValue, MaskPixelType);
+
+  itkSetMacro(BackgroundMaskValue, MaskPixelType);
+  itkGetMacro(BackgroundMaskValue, MaskPixelType);
+
   void SetGenerateOutputMask( bool );
   itkGetMacro(GenerateOutputMask, bool);
 //   itkBooleanMacro(GenerateOutputMask);
@@ -157,6 +163,10 @@ private:
   bool m_GenerateOutputMask;
 
   OutputPixelType m_FillValue;
+
+  MaskPixelType m_MaskValue;
+
+  MaskPixelType m_BackgroundMaskValue;
 
 } ; // end of class
 

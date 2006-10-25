@@ -37,7 +37,9 @@ MaskedMovingHistogramImageFilter<TInputImage, TMaskImage, TOutputImage, TKernel,
 ::MaskedMovingHistogramImageFilter()
 {
   this->SetNumberOfRequiredInputs( 2 );
-  m_FillValue = NumericTraits< OutputPixelType >::Zero;
+  this->m_FillValue = NumericTraits< OutputPixelType >::Zero;
+  this->m_MaskValue = NumericTraits< MaskPixelType >::max();
+  this->m_BackgroundMaskValue = NumericTraits< MaskPixelType >::Zero;
   this->SetGenerateOutputMask( false );
 }
 
@@ -198,7 +200,7 @@ MaskedMovingHistogramImageFilter<TInputImage, TMaskImage, TOutputImage, TKernel,
       listIt != this->m_KernelOffsets.end(); listIt++ )
     {
     IndexType idx = outputRegionForThread.GetIndex() + (*listIt);
-    if( inputRegion.IsInside( idx ) && maskImage->GetPixel(idx) )
+    if( inputRegion.IsInside( idx ) && maskImage->GetPixel(idx) == m_MaskValue )
       {
       histogram->AddPixel( inputImage->GetPixel(idx) );
       }
@@ -269,13 +271,13 @@ MaskedMovingHistogramImageFilter<TInputImage, TMaskImage, TOutputImage, TKernel,
       // Update the histogram
       IndexType currentIdx = InLineIt.GetIndex();
 
-      if( maskImage->GetPixel(currentIdx) && histRef->IsValid() ) 
+      if( maskImage->GetPixel(currentIdx) == m_MaskValue && histRef->IsValid() ) 
         {		
         outputImage->SetPixel( currentIdx,
                               static_cast< OutputPixelType >( histRef->GetValue() ) );
         if( this->m_GenerateOutputMask )
           {
-          outputMask->SetPixel( currentIdx, 1 );
+          outputMask->SetPixel( currentIdx, m_MaskValue );
           }
         }	
       else
@@ -283,7 +285,7 @@ MaskedMovingHistogramImageFilter<TInputImage, TMaskImage, TOutputImage, TKernel,
         outputImage->SetPixel( currentIdx, m_FillValue );
         if( this->m_GenerateOutputMask )
           {
-          outputMask->SetPixel( currentIdx, 0 );
+          outputMask->SetPixel( currentIdx, m_BackgroundMaskValue );
           }
         }
       stRegion.SetIndex( currentIdx - centerOffset );
@@ -364,7 +366,7 @@ MaskedMovingHistogramImageFilter<TInputImage, TMaskImage, TOutputImage, TKernel,
         addedIt != addedList->end(); addedIt++ )
       { 
       typename InputImageType::IndexType idx = currentIdx + (*addedIt);
-      if( maskImage->GetPixel(idx) )
+      if( maskImage->GetPixel(idx) == m_MaskValue )
         {
         histogram->AddPixel( inputImage->GetPixel( idx ) ); 
         }
@@ -377,7 +379,7 @@ MaskedMovingHistogramImageFilter<TInputImage, TMaskImage, TOutputImage, TKernel,
         removedIt != removedList->end(); removedIt++ )
       { 
       typename InputImageType::IndexType idx = currentIdx + (*removedIt);
-      if( maskImage->GetPixel(idx) )
+      if( maskImage->GetPixel(idx) == m_MaskValue )
         {
         histogram->RemovePixel( inputImage->GetPixel( idx ) ); 
         }
@@ -394,7 +396,7 @@ MaskedMovingHistogramImageFilter<TInputImage, TMaskImage, TOutputImage, TKernel,
         addedIt != addedList->end(); addedIt++ )
       {
       IndexType idx = currentIdx + (*addedIt);
-      if( inputRegion.IsInside( idx ) && maskImage->GetPixel(idx) )
+      if( inputRegion.IsInside( idx ) && maskImage->GetPixel(idx) == m_MaskValue )
         {
         histogram->AddPixel( inputImage->GetPixel( idx ) ); 
         }
@@ -407,7 +409,7 @@ MaskedMovingHistogramImageFilter<TInputImage, TMaskImage, TOutputImage, TKernel,
         removedIt != removedList->end(); removedIt++ )
       {
       IndexType idx = currentIdx + (*removedIt);
-      if( inputRegion.IsInside( idx ) && maskImage->GetPixel(idx) )
+      if( inputRegion.IsInside( idx ) && maskImage->GetPixel(idx) == m_MaskValue )
         { 
         histogram->RemovePixel( inputImage->GetPixel( idx ) ); 
         }
@@ -430,6 +432,8 @@ MaskedMovingHistogramImageFilter<TInputImage, TMaskImage, TOutputImage, TKernel,
 
   // TODO: display m_GenerateOutputMask
   // TODO: display m_FillValue
+  // TODO: display m_MaskValue
+  // TODO: display m_BackgroundMaskValue
 }
 
 }// end namespace itk

@@ -14,7 +14,7 @@ int main(int, char * argv[])
   typedef unsigned char PType;
   typedef itk::Image< PType, dim > IType;
 
-  typedef unsigned short MPType;
+  typedef unsigned char MPType;
   typedef itk::Image< MPType, dim > MType;
 
   unsigned repeats = (unsigned)atoi(argv[1]);
