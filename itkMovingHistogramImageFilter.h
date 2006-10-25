@@ -29,17 +29,65 @@ namespace itk {
 
 /**
  * \class MovingHistogramImageFilter
- * \brief gray scale dilation of an image
+ * \brief Implements a generic moving histogram algorithm
  *
- * Dilate an image using grayscale morphology. Dilation takes the
- * maximum of all the pixels identified by the structuring element.
+ * This filter is a base class to implement efficiently many neighborhood
+ * filters. Instead of visiting all the neighbors of a pixel, the set
+ * of pixels in the neighborhood is updated when the filter is moving
+ * to a new pixel. The number of pixels read for each pixel can be very
+ * smaller than the number of pixels read by a basic algorithm.
  *
+ * This filter moves the neighborhood over all the pixels of the output requested region,
+ * and pass the pixel added and removed of the neighborhood to the an
+ * histogram class. This filter doesn't implement the histogram class - it
+ * must be implement and passed as template parameter. The histogram class
+ * is not necessary a real histogram. It can be implemented in many ways,
+ * and only has to provide the methods described below.
+ *
+ * This filter takes 4 template parameters: the input and output image type,
+ * the structuring element (or kernel) type, and the histogram type.
+ * The input and output image must have the same number of dimension.
+ *
+ * The histogram type is a class which has to implements seven methods:
+ * + a default constructor which takes no parameter.
+ * + HistogramType * Clone() must produce a new identical histogram. It is
+ * used internally to optimize the filter, by avoiding reverse iteration
+ * over the image.
+ * + void AddPixel( const InputPixelType &p ) is called when a new pixel
+ * is added to the histogram.
+ * + void RemovePixel( const InputPixelType &p ) is called when a pixel
+ * is removed of the histogram.
+ * + void AddBoundary() is called when a pixel outside the image is added.
+ * No value is provided: it's the responsability to the histogram class to
+ * get it if needed. This method can be kept empty to ignore the boundary
+ * pixels.
+ * + void RemoveBoundary() is called to when a pixel outside the image is removed.
+ * No value is provided: it's the responsability to the histogram class to
+ * get it if needed. This method can be kept empty to ignore the boundary
+ * pixels.
+ * + AType GetValue() is called to set the value of the output image. AType
+ * must be the output pixel type, or a type castable to the output pixel type.
+ *
+ * MovingHistogramImageFilter add the new pixels before removing the old ones,
+ * so, if AddBoundary() is implemented and/or the kernel is symetric, it is safe
+ * to consider that the histogram will never be empty.
+ *
+ * One histogram is created for each thread by the method NewHistogram().
+ * The NewHistogram() method can be overiden to pass some parameters to the
+ * histogram.
+ * 
+ * The neighborhood is defined by a structuring element, and must a
+ * itk::Neighborhood object or a subclass.
  * The structuring element is assumed to be composed of binary
  * values (zero or one). Only elements of the structuring element
  * having values > 0 are candidates for affecting the center pixel.
- * 
- * \sa MorphologyImageFilter, GrayscaleFunctionDilateImageFilter, BinaryDilateImageFilter
+ *
+ * \sa MovingWindowMeanImageFilter, RankImageFilter, MaskedMovingHistogramImageFitler,
+ * \sa MovingHistogramMorphologicalGradientImageFilter
  * \ingroup ImageEnhancement  MathematicalMorphologyImageFilters
+ *
+ * \author Gaetan Lehmann
+ * \author Richard Beare
  */
 
 template<class TInputImage, class TOutputImage, class TKernel, class THistogram >
@@ -171,7 +219,7 @@ private:
       }
     
     /**
-     * return true if the object is worst choice for the best axis
+     * return true if the object is a worth choice for the best axis
      * than the object in parameter
      */
     inline bool operator< ( const DirectionCost &dc ) const
@@ -179,9 +227,9 @@ private:
       if( m_Count > dc.m_Count )
         { return true; }
       else if( m_Count < dc.m_Count )
-	{ return false; }
+        { return false; }
       else //if (m_Count == dc.m_Count) 
-	{ return m_Dimension > dc.m_Dimension; }
+        { return m_Dimension > dc.m_Dimension; }
       }
 
     int m_Dimension;
