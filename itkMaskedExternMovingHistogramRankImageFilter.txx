@@ -347,34 +347,36 @@ MaskedExternMovingHistogramRankImageFilter<TInputImage, TMaskImage, TOutputImage
 
   RegionType inputRegion = inputImage->GetRequestedRegion();
 
-  HistogramType *ThisHist;
+  HistogramType *histogram;
 
   if (useVectorBasedHistogram())
     {
-    ThisHist = new VHistogram;
+    histogram = new VHistogram;
     }
   else
     {
-    ThisHist = new MHistogram;
+    histogram = new MHistogram;
     }
 
-  ThisHist->SetRank(m_Rank);
+  histogram->SetRank(m_Rank);
 
   // initialize the histogram
   for( typename OffsetListType::iterator listIt = this->m_KernelOffsets.begin(); 
        listIt != this->m_KernelOffsets.end(); listIt++ )
     {
     IndexType idx = outputRegionForThread.GetIndex() + (*listIt);
-    if( inputRegion.IsInside( idx ) )
-      { 
-      MaskPixelType Msk = maskImage->GetPixel(idx);
-      if (Msk)
-	ThisHist->AddPixel( inputImage->GetPixel(idx) ); 
+    if( inputRegion.IsInside( idx ) && maskImage->GetPixel(idx) )
+      {
+      histogram->AddPixel( inputImage->GetPixel(idx) );
+      }
+    else
+      {
+      histogram->AddBoundary();
       }
     }
 
   // get the map based version set up properly
-  //ThisHist->Initialize();
+  //histogram->Initialize();
 
   // now move the histogram
   itk::FixedArray<short, ImageDimension> direction;
@@ -422,7 +424,7 @@ MaskedExternMovingHistogramRankImageFilter<TInputImage, TMaskImage, TOutputImage
   
   for (unsigned i=0;i<ImageDimension;i++)
     {
-    HistVec[i] = ThisHist->Clone();
+    HistVec[i] = histogram->Clone();
     PrevLineStartVec[i] = InLineIt.GetIndex();
     Steps[i]=0;
     }
@@ -436,20 +438,17 @@ MaskedExternMovingHistogramRankImageFilter<TInputImage, TMaskImage, TOutputImage
       {
       // Update the histogram
       IndexType currentIdx = InLineIt.GetIndex();
-      //MaskPixelType Msk = maskImage->GetPixel(currentIdx);
-      bool OK;
-      OutputPixelType NewVal = static_cast< OutputPixelType >( histRef->GetRankValue(OK));
 
       //std::cout << currentIdx << std::endl;
-      if (OK)
+      if( maskImage->GetPixel( currentIdx ) && histRef->IsValid() )
 	{
-	outputImage->SetPixel(currentIdx, NewVal);
-	outputMask->SetPixel(currentIdx, 1);
+	outputImage->SetPixel( currentIdx, static_cast< OutputPixelType >( histRef->GetValue() ) );
+	outputMask->SetPixel( currentIdx, 1 );
 	}
       else
 	{
-	outputImage->SetPixel(currentIdx, m_FillValue);
-	outputMask->SetPixel(currentIdx, 0);
+	outputImage->SetPixel( currentIdx, m_FillValue );
+	outputMask->SetPixel( currentIdx, 0 );
 	}
       stRegion.SetIndex( currentIdx - centerOffset );
       pushHistogram(histRef, addedList, removedList, inputRegion, 
@@ -504,7 +503,7 @@ MaskedExternMovingHistogramRankImageFilter<TInputImage, TMaskImage, TOutputImage
     {
     delete(HistVec[i]);
     }
-  delete(ThisHist);
+  delete(histogram);
   delete [] Steps;
 }
 
@@ -525,24 +524,32 @@ MaskedExternMovingHistogramRankImageFilter<TInputImage, TMaskImage, TOutputImage
     {
     // update the histogram
     for( typename OffsetListType::const_iterator addedIt = addedList->begin(); 
-	 addedIt != addedList->end(); addedIt++ )
+        addedIt != addedList->end(); addedIt++ )
       { 
       typename InputImageType::IndexType idx = currentIdx + (*addedIt);
       MaskPixelType Msk = maskImage->GetPixel(idx);
       if (Msk)
-	{
-	histogram->AddPixel( inputImage->GetPixel( idx ) ); 
-	}
+        {
+        histogram->AddPixel( inputImage->GetPixel( idx ) ); 
+        }
+      else
+        {
+        histogram->AddBoundary();
+        }
       }
     for( typename OffsetListType::const_iterator removedIt = removedList->begin(); 
-	 removedIt != removedList->end(); removedIt++ )
+        removedIt != removedList->end(); removedIt++ )
       { 
       typename InputImageType::IndexType idx = currentIdx + (*removedIt);
       MaskPixelType Msk = maskImage->GetPixel(idx);
       if (Msk)
-	{
-	histogram->RemovePixel( inputImage->GetPixel( idx ) ); 
-	}
+        {
+        histogram->RemovePixel( inputImage->GetPixel( idx ) ); 
+        }
+      else
+        {
+        histogram->RemoveBoundary();
+        }
       }
     }
   else
@@ -552,31 +559,27 @@ MaskedExternMovingHistogramRankImageFilter<TInputImage, TMaskImage, TOutputImage
 	 addedIt != addedList->end(); addedIt++ )
       {
       IndexType idx = currentIdx + (*addedIt);
-      if( inputRegion.IsInside( idx ) )
+      if( inputRegion.IsInside( idx ) && maskImage->GetPixel(idx) )
         {
-	MaskPixelType Msk = maskImage->GetPixel(idx);
-	if (Msk)
-	  {
-	  histogram->AddPixel( inputImage->GetPixel( idx ) ); 
-	  }
-	}
+        histogram->AddPixel( inputImage->GetPixel( idx ) ); 
+        }
       else
         { 
-	//histogram->AddBoundary(); 
-	}
+        histogram->AddBoundary(); 
+        }
       }
     for( typename OffsetListType::const_iterator removedIt = removedList->begin(); 
 	 removedIt != removedList->end(); removedIt++ )
       {
       IndexType idx = currentIdx + (*removedIt);
-      if( inputRegion.IsInside( idx ) )
+      if( inputRegion.IsInside( idx ) && maskImage->GetPixel(idx) )
         { 
-	MaskPixelType Msk = maskImage->GetPixel(idx);
-	if (Msk)
-	  {
-	  histogram->RemovePixel( inputImage->GetPixel( idx ) ); 
-	  }
-	}
+        histogram->RemovePixel( inputImage->GetPixel( idx ) ); 
+        }
+      else
+        { 
+        histogram->RemoveBoundary(); 
+        }
       }
     }
 }

@@ -55,6 +55,14 @@ public:
     return sum / static_cast< double >( count );
     }
 
+  inline MeanHistogram * Clone()
+    {
+    MeanHistogram * result = new MeanHistogram();
+    result->sum = this->sum;
+    result->count = this->count;
+    return result;
+    }
+
   double sum;
   unsigned long count;
 

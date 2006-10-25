@@ -1,6 +1,6 @@
 // histogram from the moving histogram operations
-#ifndef __itkRankHistogram_h
-#define __itkRankHistogram_h
+#ifndef __itkRankHistogramMask_h
+#define __itkRankHistogramMask_h
 #include "itkNumericTraits.h"
 
 namespace itk {
@@ -16,16 +16,16 @@ namespace itk {
 // This is a modified version for use with masks. Need to allow for
 // the situation in which the map is empty
 template <class TInputPixel>
-class RankHistogram
+class RankHistogramMask
 {
 public:
-  RankHistogram() 
+  RankHistogramMask() 
   {
     m_Rank = 0.5;
   }
-  virtual ~RankHistogram(){}
+  virtual ~RankHistogramMask(){}
 
-  virtual RankHistogram *Clone(){return 0;}
+  virtual RankHistogramMask *Clone(){return 0;}
   
   virtual void Reset(){}
     
@@ -37,26 +37,27 @@ public:
   // included. Meant to be an optimization so that the rank value
   // iterator is properly set.
 //  virtual void Initialize(){};
-  //virtual TInputPixel GetValue(){}
 
-  virtual TInputPixel GetRankValue(bool &OK){return 0;}
+  virtual bool IsValid() {}
+
+  virtual TInputPixel GetValue(){}
 
   void SetRank(float rank)
   {
     m_Rank = rank;
   }
 
-  void SetBoundary( const TInputPixel & val )
-  {
-    m_Boundary = val; 
-  }
+  void AddBoundary(){}
+
+  void RemoveBoundary(){}
+ 
 protected:
-  TInputPixel  m_Boundary;
   float m_Rank;
+
 };
 
 template <class TInputPixel, class TCompare>
-class RankHistogramMap : public RankHistogram<TInputPixel>
+class RankHistogramMaskMap : public RankHistogramMask<TInputPixel>
 {
 private:
   typedef typename std::map< TInputPixel, unsigned long, TCompare > MapType;
@@ -69,7 +70,7 @@ private:
   // This iterator will point at the desired rank value
   typename MapType::iterator m_RankIt;
 public:
-  RankHistogramMap() 
+  RankHistogramMaskMap() 
   {
     m_Below = m_Entries = 0;
     // can't set m_RankIt until something has been put in the histogram
@@ -86,13 +87,13 @@ public:
     m_RankValue = m_InitVal;
     m_RankIt = m_Map.begin();  // equivalent to setting to the intial value
    }
-  ~RankHistogramMap()
+  ~RankHistogramMaskMap()
   {
   }
 
-  RankHistogramMap *Clone()
+  RankHistogramMaskMap *Clone()
   {
-    RankHistogramMap *result = new RankHistogramMap();
+    RankHistogramMaskMap *result = new RankHistogramMaskMap();
     result->m_Map = this->m_Map;
     result->m_Rank = this->m_Rank;
     result->m_Below = this->m_Below;
@@ -151,102 +152,81 @@ public:
 //     m_RankIt = m_Map.begin();
 //   }
 
-  TInputPixel GetRankValue(bool &OK)
-  {
+  virtual bool IsValid()
+   {
+   return m_Initialized;
+   }
+
+
+  TInputPixel GetValue()
+    {
     unsigned long target = (int)(this->m_Rank * (m_Entries-1)) + 1;
     unsigned long total = m_Below;
     unsigned long ThisBin;
     bool eraseFlag = false;
 
-
-#if 0
-    // print out the histogram (debugging)
-    for (typename MapType::iterator pIt = m_Map.begin(); pIt != m_Map.end(); pIt++)
+    if (total < target)
       {
-      if (pIt->second > 0)
-	std::cout << "[" << pIt->first << "," << pIt->second << "]" ;
-      }
-    std::cout << std::endl;
-
-    std::cout << "{" << m_Below << "," << target << "," << m_RankIt->first << "}" << std::endl;
-#endif
-    if (m_Initialized)
-      {
-      OK=true;
-      if (total < target)
-	{
-	typename MapType::iterator searchIt = m_RankIt;
-	typename MapType::iterator eraseIt;
-	
-	while (searchIt != m_Map.end())
-	  {
-	  // cleaning up the map - probably a better way of organising
-	  // the loop. Currently makes sure that the search iterator is
-	  // incremented before deleting
-	  ++searchIt;
-	  ThisBin = searchIt->second;
-	  total += ThisBin;
-	  if (eraseFlag)
-	    {
-	    m_Map.erase(eraseIt);
-	    eraseFlag = false;
-	    }
-	  if (ThisBin <= 0)
-	    {
-	    eraseFlag = true;
-	    eraseIt = searchIt;
-	    }
-	  if (total >= target)
-	    break;
-	  }
-	m_RankValue = searchIt->first;
-	m_RankIt = searchIt;
-	}
-      else
-	{
-	typename MapType::iterator searchIt = m_RankIt;
-	typename MapType::iterator eraseIt;
-#if 0
-	std::cout << "+{" << m_Below << "," << target << "," << m_RankIt->first <<"," << m_Map.begin()->first << "}" << std::endl;
-#endif
-	while(searchIt != m_Map.begin())
-	  {
-	  ThisBin = searchIt->second;
-	  unsigned int tbelow = total - ThisBin;
-	  if (tbelow < target) // we've overshot
-	    break;
-	  if (eraseFlag)
-	    {
-	    m_Map.erase(eraseIt);
-	    eraseFlag = false;
-	    }
-	  if (ThisBin <= 0)
-	    {
-	    eraseIt = searchIt;
-	    eraseFlag = true;
-	    }
-	  total = tbelow;				
-// 	std::cout << searchIt->first << std::endl;
-	  
-	  --searchIt;
-	  }
-	m_RankValue = searchIt->first;
-	m_RankIt = searchIt;
-	}
-
-      m_Below = total;
-#if 0
-      std::cout << "*{" << m_Below << "," << target << "," << m_RankIt->first << "}" << std::endl;
-#endif
-      return(m_RankValue);
+      typename MapType::iterator searchIt = m_RankIt;
+      typename MapType::iterator eraseIt;
+      
+      while (searchIt != m_Map.end())
+        {
+        // cleaning up the map - probably a better way of organising
+        // the loop. Currently makes sure that the search iterator is
+        // incremented before deleting
+        ++searchIt;
+        ThisBin = searchIt->second;
+        total += ThisBin;
+        if (eraseFlag)
+          {
+          m_Map.erase(eraseIt);
+          eraseFlag = false;
+          }
+        if (ThisBin <= 0)
+          {
+          eraseFlag = true;
+          eraseIt = searchIt;
+          }
+        if (total >= target)
+          break;
+        }
+      m_RankValue = searchIt->first;
+      m_RankIt = searchIt;
       }
     else
       {
-      OK=false;
-      return(0);
+      typename MapType::iterator searchIt = m_RankIt;
+      typename MapType::iterator eraseIt;
+
+      while(searchIt != m_Map.begin())
+        {
+        ThisBin = searchIt->second;
+        unsigned int tbelow = total - ThisBin;
+        if (tbelow < target) // we've overshot
+          break;
+        if (eraseFlag)
+          {
+          m_Map.erase(eraseIt);
+          eraseFlag = false;
+          }
+        if (ThisBin <= 0)
+          {
+          eraseIt = searchIt;
+          eraseFlag = true;
+          }
+        total = tbelow;				
+        
+        --searchIt;
+        }
+      m_RankValue = searchIt->first;
+      m_RankIt = searchIt;
       }
 
-  }
+    m_Below = total;
+    return(m_RankValue);
+
+    }
 
 #if 0
   TInputPixel GetValue()
@@ -279,7 +259,7 @@ public:
 };
 
 template <class TInputPixel, class TCompare>
-class RankHistogramVec : public RankHistogram<TInputPixel>
+class RankHistogramMaskVec : public RankHistogramMask<TInputPixel>
 {
 private:
   typedef typename std::vector<unsigned long> VecType;
@@ -295,7 +275,7 @@ private:
   int m_Entries;
 
 public:
-  RankHistogramVec() 
+  RankHistogramMaskVec() 
   {
     m_Size = static_cast<unsigned int>( NumericTraits< TInputPixel >::max() - 
 					NumericTraits< TInputPixel >::NonpositiveMin() + 1 );
@@ -313,7 +293,7 @@ public:
     m_RankValue = m_InitVal  - NumericTraits< TInputPixel >::NonpositiveMin();
   }
 
-  RankHistogramVec(bool NoInit) 
+  RankHistogramMaskVec(bool NoInit) 
   {
     m_Size = static_cast<unsigned int>( NumericTraits< TInputPixel >::max() - 
 					NumericTraits< TInputPixel >::NonpositiveMin() + 1 );
@@ -332,13 +312,13 @@ public:
   }
 
 
-  ~RankHistogramVec()
+  ~RankHistogramMaskVec()
   {
   }
 
-  RankHistogramVec *Clone()
+  RankHistogramMaskVec *Clone()
   {
-    RankHistogramVec *result = new RankHistogramVec(true);
+    RankHistogramMaskVec *result = new RankHistogramMaskVec(true);
     result->m_Vec = this->m_Vec;
     result->m_Size = this->m_Size;
     //result->m_CurrentValue = this->m_CurrentValue;
@@ -350,18 +330,18 @@ public:
     return(result);
   }
 
-  TInputPixel GetRankValue(bool &OK)
+  virtual bool IsValid()
+   {
+   return m_Entries > 0;
+   }
+
+
+  TInputPixel GetValue()
   {
     unsigned long target = (int)(this->m_Rank * (m_Entries-1)) + 1;
     unsigned long total = m_Below;
     long unsigned int pos = (long unsigned int)(m_RankValue - NumericTraits< TInputPixel >::NonpositiveMin()); 
 
-    if (m_Entries <= 0)
-      {
-      OK = false;
-      return(0);
-      }
-    OK=true;
     if (total < target)
       {
       while (pos < m_Size)

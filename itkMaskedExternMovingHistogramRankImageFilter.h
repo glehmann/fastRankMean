@@ -145,10 +145,10 @@ protected:
   MaskedExternMovingHistogramRankImageFilter();
   ~MaskedExternMovingHistogramRankImageFilter() {};
 
-  typedef RankHistogram<InputPixelType> HistogramType;
+  typedef RankHistogramMask<InputPixelType> HistogramType;
   
-  typedef RankHistogramVec<InputPixelType, std::less< InputPixelType> > VHistogram;
-  typedef RankHistogramMap<InputPixelType, std::less< InputPixelType>  > MHistogram;
+  typedef RankHistogramMaskVec<InputPixelType, std::less< InputPixelType> > VHistogram;
+  typedef RankHistogramMaskMap<InputPixelType, std::less< InputPixelType>  > MHistogram;
   
   
   /** Multi-thread version GenerateData. */
