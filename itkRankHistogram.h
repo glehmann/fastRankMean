@@ -191,6 +191,21 @@ public:
 
   }
 
+  RankHistogramMap * Clone()
+   {
+    RankHistogramMap *result = new RankHistogramMap();
+    result->m_Map = this->m_Map;
+    result->m_Rank = this->m_Rank;
+    result->m_Below = this->m_Below;
+    result->m_Entries = this->m_Entries;
+    result->m_InitVal = this->m_InitVal;
+    result->m_RankValue = this->m_RankValue;
+    result->m_Initialized = this->m_Initialized;
+    if (result->m_Initialized)
+      result->m_RankIt = result->m_Map.find(this->m_RankValue);
+    return(result);
+   }
+
 };
 
 template <class TInputPixel, class TCompare>
@@ -309,6 +324,20 @@ public:
       }
   }
  
+  RankHistogramVec * Clone()
+   {
+    RankHistogramVec *result = new RankHistogramVec(true);
+    result->m_Vec = this->m_Vec;
+    result->m_Size = this->m_Size;
+    //result->m_CurrentValue = this->m_CurrentValue;
+    result->m_InitVal = this->m_InitVal;
+    result->m_Entries = this->m_Entries;
+    result->m_Below = this->m_Below;
+    result->m_Rank = this->m_Rank;
+    result->m_RankValue = this->m_RankValue;
+    return(result);
+   }
+
 };
 
 } // end namespace itk

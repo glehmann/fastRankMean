@@ -43,22 +43,21 @@ MovingHistogramRankImageFilter<TInputImage, TOutputImage, TKernel>
 
 
 template<class TInputImage, class TOutputImage, class TKernel>
-typename MovingHistogramRankImageFilter<TInputImage, TOutputImage, TKernel>::HistogramType
+typename MovingHistogramRankImageFilter<TInputImage, TOutputImage, TKernel>::HistogramType *
 MovingHistogramRankImageFilter<TInputImage, TOutputImage, TKernel>
 ::NewHistogram()
 {
+  HistogramType * hist;
   if (useVectorBasedHistogram())
     {
-    VHistogram hist;
-    hist.SetRank( this->GetRank() );
-    return hist;
+    hist = new VHistogram();
     }
   else
     {
-    MHistogram hist;
-    hist.SetRank( this->GetRank() );
-    return hist;
+    hist = new MHistogram();
     }
+  hist->SetRank( this->GetRank() );
+  return hist;
 }
 
 

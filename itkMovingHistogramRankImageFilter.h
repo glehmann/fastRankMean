@@ -122,7 +122,7 @@ protected:
   }
 
 
-  virtual HistogramType NewHistogram();
+  virtual HistogramType * NewHistogram();
 
 private:
   MovingHistogramRankImageFilter(const Self&); //purposely not implemented

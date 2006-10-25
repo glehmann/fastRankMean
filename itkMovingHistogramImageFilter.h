@@ -119,7 +119,7 @@ protected:
    * A default version is provided which just create a new Historgram and return
    * it.
    */
-  virtual THistogram NewHistogram();
+  virtual THistogram * NewHistogram();
 
   /** kernel or structuring element to use. */
   KernelType m_Kernel ;
@@ -139,7 +139,7 @@ protected:
   // declare the type used to store the histogram
   typedef THistogram HistogramType;
 
-  void pushHistogram(HistogramType &histogram, 
+  void pushHistogram(HistogramType * histogram, 
 		     const OffsetListType* addedList,
 		     const OffsetListType* removedList,
 		     const RegionType &inputRegion,
