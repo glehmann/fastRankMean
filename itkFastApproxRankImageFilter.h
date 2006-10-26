@@ -1,7 +1,7 @@
 #ifndef __itkFastApproxRankImageFilter_h
 #define __itkFastApproxRankImageFilter_h
 
-#include "itkImageToImageFilter.h"
+#include "itkSeparableImageFilter.h"
 #include "itkRankImageFilter.h"
 
 namespace itk {
@@ -17,14 +17,14 @@ namespace itk {
  * \author Richard Beare
  */
 
-template<class TInputImage, class TOutputImage>
+template<class TInputImage>
 class ITK_EXPORT FastApproxRankImageFilter : 
-public ImageToImageFilter<TInputImage, TOutputImage>
+public SeparableImageFilter<TInputImage, RankImageFilter<TInputImage, TInputImage, Neighborhood<bool, TInputImage::ImageDimension> > >
 {
 public:
   /** Standard class typedefs. */
   typedef FastApproxRankImageFilter Self;
-  typedef ImageToImageFilter<TInputImage,TOutputImage>  Superclass;
+  typedef SeparableImageFilter<TInputImage, RankImageFilter<TInputImage, TInputImage, Neighborhood<bool, TInputImage::ImageDimension> > >  Superclass;
   typedef SmartPointer<Self>        Pointer;
   typedef SmartPointer<const Self>  ConstPointer;
   
@@ -33,7 +33,7 @@ public:
 
   /** Runtime information support. */
   itkTypeMacro(FastApproxRankImageFilter,
-               ImageToImageFilter);
+               SeparableImageFilter);
  
   /** Image related typedefs. */
   typedef TInputImage InputImageType;
@@ -42,7 +42,7 @@ public:
   typedef typename TInputImage::IndexType IndexType ;
   typedef typename TInputImage::PixelType PixelType ;
   typedef typename TInputImage::OffsetType OffsetType ;
-  typedef typename TInputImage::PixelType InputPixelType ;
+  typedef typename Superclass::FilterType FilterType ;
   
   /** Image related typedefs. */
   itkStaticConstMacro(ImageDimension, unsigned int,
@@ -50,40 +50,18 @@ public:
   /** n-dimensional Kernel radius. */
   typedef typename TInputImage::SizeType RadiusType ;
 
-  itkSetMacro(Radius, RadiusType);
-  itkGetMacro(Radius, RadiusType);
-  itkSetMacro(Rank, float);
+  void SetRank( float );
   itkGetMacro(Rank, float);
-
-  void GenerateInputRequestedRegion() ;
-
-  virtual void Modified() const;
 
 protected:
   FastApproxRankImageFilter();
   ~FastApproxRankImageFilter() {};
-
-  void GenerateData();
 
 private:
   FastApproxRankImageFilter(const Self&); //purposely not implemented
   void operator=(const Self&); //purposely not implemented
 
   float m_Rank;
-  RadiusType m_Radius;
-
-  typedef typename itk::Neighborhood<bool, TInputImage::ImageDimension> KernelType;
-
-  KernelType m_kernels[TInputImage::ImageDimension];
-
-  typedef typename itk::RankImageFilter<TInputImage, 
-						       TOutputImage, 
-						       KernelType> RankType1;
-  typedef typename itk::RankImageFilter<TOutputImage, 
-						       TOutputImage, 
-						       KernelType> RankType2;
-  typename RankType1::Pointer m_firstFilt;
-  typename RankType2::Pointer m_otherFilts[TInputImage::ImageDimension - 1];
 };
 
 }

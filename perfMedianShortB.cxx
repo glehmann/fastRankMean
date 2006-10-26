@@ -45,7 +45,7 @@ int main(int, char * argv[])
     IType::SizeType ThisRadius;
     ThisRadius.Fill(radius);
 
-    typedef itk::FastApproxRankImageFilter< IType, IType> FilterType;
+    typedef itk::FastApproxRankImageFilter< IType> FilterType;
     FilterType::Pointer filter = FilterType::New();
     filter->SetInput( reader->GetOutput() );
     filter->SetRadius(ThisRadius);
