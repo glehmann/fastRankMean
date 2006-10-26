@@ -5,6 +5,7 @@
 #include "itkNeighborhood.h"
 #include "itkFastApproxRankImageFilter.h"
 #include "itkMedianImageFilter.h"
+#include "itkSeparableRadiusImageFilter.h"
 #include "itkTimeProbe.h"
 #include <vector>
 #include <iomanip>
@@ -35,11 +36,11 @@ int main(int, char * argv[])
   reader->SetFileName( argv[2] );
   reader->Update();
 
-  std::cout << "radius \t  Traditional time \t Separable time" << std::endl;
+  std::cout << "radius \t  Traditional time \t Separable time \t separable median" << std::endl;
 
   for (unsigned r = 0; r < rads.size(); r++)
     {
-    itk::TimeProbe HTime, TTime;
+    itk::TimeProbe HTime, TTime, SMTime;
     int radius = rads[r];
 
     IType::SizeType ThisRadius;
@@ -70,9 +71,24 @@ int main(int, char * argv[])
       TTime.Stop();
       }
 
+    typedef itk::MedianImageFilter<IType, IType> MedianFilterType;
+    typedef itk::SeparableRadiusImageFilter<IType, MedianFilterType> SeparableMedianFilterType;
+    SeparableMedianFilterType::Pointer sep_median = SeparableMedianFilterType::New();
+    sep_median->SetInput(reader->GetOutput());
+    sep_median->SetRadius(ThisRadius);
+    
+    for (unsigned i=0;i<repeats; i++)
+      {
+      SMTime.Start();
+      sep_median->Modified();
+      sep_median->Update();
+      SMTime.Stop();
+      }
+
     std::cout << std::setprecision(3) << radius << "\t"
 	      << TTime.GetMeanTime() <<"\t" 
-	      << HTime.GetMeanTime() << std::endl;
+	      << HTime.GetMeanTime() << "\t" 
+	      << SMTime.GetMeanTime() << std::endl;
     }
   return 0;
 }
