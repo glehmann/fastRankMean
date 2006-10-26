@@ -17,14 +17,14 @@ namespace itk {
  * \author Richard Beare
  */
 
-template<class TInputImage>
+template<class TInputImage, class TOutputImage>
 class ITK_EXPORT FastApproxRankImageFilter : 
-public SeparableImageFilter<TInputImage, RankImageFilter<TInputImage, TInputImage, Neighborhood<bool, TInputImage::ImageDimension> > >
+public SeparableImageFilter<TInputImage, TOutputImage, RankImageFilter<TOutputImage, TOutputImage, Neighborhood<bool, TInputImage::ImageDimension> > >
 {
 public:
   /** Standard class typedefs. */
   typedef FastApproxRankImageFilter Self;
-  typedef SeparableImageFilter<TInputImage, RankImageFilter<TInputImage, TInputImage, Neighborhood<bool, TInputImage::ImageDimension> > >  Superclass;
+  typedef SeparableImageFilter<TInputImage, TOutputImage, RankImageFilter<TOutputImage, TOutputImage, Neighborhood<bool, TInputImage::ImageDimension> > >  Superclass;
   typedef SmartPointer<Self>        Pointer;
   typedef SmartPointer<const Self>  ConstPointer;
   

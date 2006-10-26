@@ -3,17 +3,17 @@
 
 namespace itk {
 
-template <class TInputImage>
-FastApproxRankImageFilter<TInputImage>
+template <class TInputImage, class TOutputImage>
+FastApproxRankImageFilter<TInputImage, TOutputImage>
 ::FastApproxRankImageFilter()
 {
   this->SetRank( 0.5 );
 }
 
 
-template<class TInputImage>
+template<class TInputImage, class TOutputImage>
 void
-FastApproxRankImageFilter<TInputImage>
+FastApproxRankImageFilter<TInputImage, TOutputImage>
 ::SetRank( float rank )
 {
   if( m_Rank != rank )
