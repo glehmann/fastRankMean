@@ -25,6 +25,8 @@ int main(int, char * argv[])
   
   IVec rads;
   rads.push_back(1);
+  rads.push_back(2);
+  rads.push_back(3);
   rads.push_back(5);
   rads.push_back(10);
   rads.push_back(15);
@@ -36,27 +38,15 @@ int main(int, char * argv[])
   reader->SetFileName( argv[2] );
   reader->Update();
 
-  std::cout << "radius \t  Traditional time \t Separable time \t separable mean" << std::endl;
+  std::cout << "radius \tstd \tMW \tSep std\tSep MW" << std::endl;
 
   for (unsigned r = 0; r < rads.size(); r++)
     {
-    itk::TimeProbe HTime, TTime, SMTime;
+    itk::TimeProbe SMWTime, StdTime, SStdTime, MWTime;
     int radius = rads[r];
 
     IType::SizeType ThisRadius;
     ThisRadius.Fill(radius);
-
-    typedef itk::SeparableMeanImageFilter< IType, IType > FilterType;
-    FilterType::Pointer filter = FilterType::New();
-    filter->SetInput( reader->GetOutput() );
-    filter->SetRadius(ThisRadius);
-    for (unsigned i=0;i<repeats; i++)
-      {
-      HTime.Start();
-      filter->Modified();
-      filter->Update();
-      HTime.Stop();
-      }
 
     typedef itk::MeanImageFilter<IType, IType> MeanFilterType;
     MeanFilterType::Pointer mean = MeanFilterType::New();
@@ -65,13 +55,33 @@ int main(int, char * argv[])
     
     for (unsigned i=0;i<repeats; i++)
       {
-      TTime.Start();
+      StdTime.Start();
       mean->Modified();
       mean->Update();
-      TTime.Stop();
+      StdTime.Stop();
       }
 
-    typedef itk::MeanImageFilter<IType, IType> MeanFilterType;
+    typedef itk::Neighborhood<bool, dim> KType;
+    KType kernel;
+    kernel.SetRadius(radius);
+    for( KType::Iterator kit=kernel.Begin(); kit!=kernel.End(); kit++ )
+      {
+      *kit=1;
+      }
+
+    typedef itk::MovingWindowMeanImageFilter< IType, IType, KType > MWFilterType;
+    MWFilterType::Pointer mwfilter = MWFilterType::New();
+    mwfilter->SetInput( reader->GetOutput() );
+    mwfilter->SetKernel(kernel);
+    for (unsigned i=0;i<repeats; i++)
+      {
+      MWTime.Start();
+      mwfilter->Modified();
+      mwfilter->Update();
+      MWTime.Stop();
+      }
+
+
     typedef itk::SeparableRadiusImageFilter<IType, IType, MeanFilterType> SeparableMeanFilterType;
     SeparableMeanFilterType::Pointer sep_mean = SeparableMeanFilterType::New();
     sep_mean->SetInput(reader->GetOutput());
@@ -79,16 +89,29 @@ int main(int, char * argv[])
     
     for (unsigned i=0;i<repeats; i++)
       {
-      SMTime.Start();
+      SStdTime.Start();
       sep_mean->Modified();
       sep_mean->Update();
-      SMTime.Stop();
+      SStdTime.Stop();
+      }
+
+    typedef itk::SeparableMeanImageFilter< IType, IType > FilterType;
+    FilterType::Pointer filter = FilterType::New();
+    filter->SetInput( reader->GetOutput() );
+    filter->SetRadius(ThisRadius);
+    for (unsigned i=0;i<repeats; i++)
+      {
+      SMWTime.Start();
+      filter->Modified();
+      filter->Update();
+      SMWTime.Stop();
       }
 
     std::cout << std::setprecision(3) << radius << "\t"
-	      << TTime.GetMeanTime() <<"\t" 
-	      << HTime.GetMeanTime() << "\t" 
-	      << SMTime.GetMeanTime() << std::endl;
+	      << StdTime.GetMeanTime() <<"\t" 
+	      << MWTime.GetMeanTime() << "\t" 
+	      << SStdTime.GetMeanTime() << "\t" 
+	      << SMWTime.GetMeanTime() << std::endl;
     }
   return 0;
 }
