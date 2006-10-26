@@ -57,6 +57,8 @@ public:
 
   void GenerateInputRequestedRegion() ;
 
+  virtual void Modified() const;
+
 protected:
   FastApproxRankImageFilter();
   ~FastApproxRankImageFilter() {};

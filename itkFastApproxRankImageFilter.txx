@@ -18,6 +18,22 @@ FastApproxRankImageFilter<TInputImage, TOutputImage>
     m_otherFilts[i] = RankType2::New();
     }
 }
+
+
+template<class TInputImage, class TOutputImage>
+void
+FastApproxRankImageFilter<TInputImage, TOutputImage>
+::Modified() const
+{
+  Superclass::Modified();
+  m_firstFilt->Modified();
+  for (unsigned i = 0; i < TInputImage::ImageDimension - 1; i++)
+    {
+    m_otherFilts[i]->Modified();
+    }
+}
+
+
 template<class TInputImage, class TOutputImage>
 void
 FastApproxRankImageFilter<TInputImage, TOutputImage>

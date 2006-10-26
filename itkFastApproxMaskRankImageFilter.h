@@ -99,6 +99,8 @@ public:
 
   void GenerateInputRequestedRegion() ;
 
+  virtual void Modified() const;
+
 protected:
   FastApproxMaskRankImageFilter();
   ~FastApproxMaskRankImageFilter() {};

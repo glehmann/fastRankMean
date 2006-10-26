@@ -28,6 +28,28 @@ FastApproxMaskRankImageFilter<TInputImage, TMaskImage, TOutputImage>
   m_NegMaskFilt = NegMaskType::New();
 /*  m_Writer = WriterType::New();*/
 }
+
+
+template<class TInputImage, class TMaskImage, class TOutputImage>
+void
+FastApproxMaskRankImageFilter<TInputImage, TMaskImage, TOutputImage>
+::Modified() const
+{
+  Superclass::Modified();
+  m_firstFilt->Modified();
+  for (unsigned i = 0; i < TInputImage::ImageDimension - 1; i++)
+    {
+    m_otherFilts[i]->Modified();
+    }
+  for (unsigned i = 0; i < TInputImage::ImageDimension; i++)
+    {
+    m_EFilts[i]->Modified();
+    }
+  m_MaskFilt->Modified();
+  m_NegMaskFilt->Modified();
+}
+
+
 template<class TInputImage, class TMaskImage, class TOutputImage>
 void
 FastApproxMaskRankImageFilter<TInputImage, TMaskImage, TOutputImage>
