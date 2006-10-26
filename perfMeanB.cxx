@@ -72,7 +72,7 @@ int main(int, char * argv[])
       }
 
     typedef itk::MeanImageFilter<IType, IType> MeanFilterType;
-    typedef itk::SeparableRadiusImageFilter<IType, MeanFilterType> SeparableMeanFilterType;
+    typedef itk::SeparableRadiusImageFilter<IType, IType, MeanFilterType> SeparableMeanFilterType;
     SeparableMeanFilterType::Pointer sep_mean = SeparableMeanFilterType::New();
     sep_mean->SetInput(reader->GetOutput());
     sep_mean->SetRadius(ThisRadius);

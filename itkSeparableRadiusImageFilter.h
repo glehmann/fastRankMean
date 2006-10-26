@@ -2,25 +2,30 @@
 #define __itkSeparableRadiusImageFilter_h
 
 #include "itkImageToImageFilter.h"
-#include "itkRankImageFilter.h"
+#include "itkCastImageFilter.h"
+
 
 namespace itk {
 
 /**
  * \class SeparableRadiusImageFilter
  * \brief A separable rank filter
+ * 
+ * Medians aren't separable, but if you want a large robust smoother
+ * to be relatively quick then it is worthwhile pretending that they
+ * are.
  *
- * \author Gaetan Lehmann
+ * \author Richard Beare
  */
 
-template<class TImage, class TFilter>
+template<class TInputImage, class TOutputImage, class TFilter>
 class ITK_EXPORT SeparableRadiusImageFilter : 
-public ImageToImageFilter<TImage, TImage>
+public ImageToImageFilter<TInputImage, TOutputImage>
 {
 public:
   /** Standard class typedefs. */
   typedef SeparableRadiusImageFilter Self;
-  typedef ImageToImageFilter<TImage,TImage>  Superclass;
+  typedef ImageToImageFilter<TInputImage,TOutputImage>  Superclass;
   typedef SmartPointer<Self>        Pointer;
   typedef SmartPointer<const Self>  ConstPointer;
   
@@ -32,20 +37,24 @@ public:
                ImageToImageFilter);
  
   /** Image related typedefs. */
-  typedef TImage InputImageType;
-  typedef typename TImage::RegionType RegionType ;
-  typedef typename TImage::SizeType SizeType ;
-  typedef typename TImage::IndexType IndexType ;
-  typedef typename TImage::PixelType PixelType ;
-  typedef typename TImage::OffsetType OffsetType ;
+  typedef TInputImage InputImageType;
+  typedef typename TInputImage::RegionType RegionType ;
+  typedef typename TInputImage::SizeType SizeType ;
+  typedef typename TInputImage::IndexType IndexType ;
+  typedef typename TInputImage::PixelType PixelType ;
+  typedef typename TInputImage::OffsetType OffsetType ;
+  
+  typedef TOutputImage OutputImageType;
+  typedef typename TOutputImage::PixelType OutputPixelType ;
 
   typedef TFilter FilterType ;
+  typedef CastImageFilter< InputImageType, OutputImageType > CastType ;
   
   /** Image related typedefs. */
   itkStaticConstMacro(ImageDimension, unsigned int,
-                      TImage::ImageDimension);
+                      TInputImage::ImageDimension);
   /** n-dimensional Kernel radius. */
-  typedef typename TImage::SizeType RadiusType ;
+  typedef typename TInputImage::SizeType RadiusType ;
 
   // itkSetMacro(Radius, RadiusType);
   void SetRadius( const RadiusType );
@@ -61,9 +70,13 @@ protected:
 
   void GenerateData();
 
-  typedef typename itk::Neighborhood<bool, TImage::ImageDimension> KernelType;
+  typedef typename itk::Neighborhood<bool, TInputImage::ImageDimension> KernelType;
+
+  KernelType m_kernels[ImageDimension];
 
   typename FilterType::Pointer m_Filters[ImageDimension];
+  
+  typename CastType::Pointer m_Cast;
 
 private:
   SeparableRadiusImageFilter(const Self&); //purposely not implemented

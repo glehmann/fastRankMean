@@ -6,11 +6,14 @@
 
 namespace itk {
 
-template <class TImage, class TFilter>
-SeparableRadiusImageFilter<TImage, TFilter>
+template <class TInputImage, class TOutputImage, class TFilter>
+SeparableRadiusImageFilter<TInputImage, TOutputImage, TFilter>
 ::SeparableRadiusImageFilter()
 {
   m_Radius.Fill(5);  // an arbitary starting point
+  m_Cast = CastType::New();
+  m_Cast->SetInPlace( true );
+  m_Cast->ReleaseDataFlagOn();
   for (unsigned i = 0; i < ImageDimension; i++)
     {
     m_Filters[i] = FilterType::New();
@@ -23,12 +26,13 @@ SeparableRadiusImageFilter<TImage, TFilter>
       m_Filters[i]->ReleaseDataFlagOn();
       }
     }
+    m_Filters[0]->SetInput( m_Cast->GetOutput() );
 }
 
 
-template<class TImage, class TFilter>
+template<class TInputImage, class TOutputImage, class TFilter>
 void
-SeparableRadiusImageFilter<TImage, TFilter>
+SeparableRadiusImageFilter<TInputImage, TOutputImage, TFilter>
 ::Modified() const
 {
   Superclass::Modified();
@@ -39,9 +43,9 @@ SeparableRadiusImageFilter<TImage, TFilter>
 }
 
 
-template<class TImage, class TFilter>
+template<class TInputImage, class TOutputImage, class TFilter>
 void
-SeparableRadiusImageFilter<TImage, TFilter>
+SeparableRadiusImageFilter<TInputImage, TOutputImage, TFilter>
 ::GenerateInputRequestedRegion()
 {
   // call the superclass' implementation of this method
@@ -49,7 +53,7 @@ SeparableRadiusImageFilter<TImage, TFilter>
   
   // get pointers to the input and output
   typename Superclass::InputImagePointer  inputPtr = 
-    const_cast< TImage * >( this->GetInput() );
+    const_cast< TInputImage * >( this->GetInput() );
   
   if ( !inputPtr )
     {
@@ -58,7 +62,7 @@ SeparableRadiusImageFilter<TImage, TFilter>
 
   // get a copy of the input requested region (should equal the output
   // requested region)
-  typename TImage::RegionType inputRequestedRegion;
+  typename TInputImage::RegionType inputRequestedRegion;
   inputRequestedRegion = inputPtr->GetRequestedRegion();
 
   // pad the input requested region by the operator radius
@@ -91,15 +95,15 @@ SeparableRadiusImageFilter<TImage, TFilter>
 }
 
 
-template <class TImage, class TFilter>
+template <class TInputImage, class TOutputImage, class TFilter>
 void
-SeparableRadiusImageFilter<TImage, TFilter>
+SeparableRadiusImageFilter<TInputImage, TOutputImage, TFilter>
 ::SetRadius( const RadiusType radius )
 {
   this->m_Radius = radius;
   
   // set up the kernels
-  for (unsigned i = 0; i< TImage::ImageDimension; i++)
+  for (unsigned i = 0; i< ImageDimension; i++)
     {
     RadiusType rad;
     rad.Fill(0);
@@ -109,14 +113,14 @@ SeparableRadiusImageFilter<TImage, TFilter>
 }
 
 
-template <class TImage, class TFilter>
+template <class TInputImage, class TOutputImage, class TFilter>
 void
-SeparableRadiusImageFilter<TImage, TFilter>
+SeparableRadiusImageFilter<TInputImage, TOutputImage, TFilter>
 ::GenerateData()
 {
   this->AllocateOutputs();
   // set up the pipeline
-  m_Filters[0]->SetInput( this->GetInput() );
+  m_Cast->SetInput( this->GetInput() );
 
   // Create a process accumulator for tracking the progress of this minipipeline
   ProgressAccumulator::Pointer progress = ProgressAccumulator::New();
@@ -126,8 +130,8 @@ SeparableRadiusImageFilter<TImage, TFilter>
     progress->RegisterInternalFilter(m_Filters[i], 1.0/ImageDimension);
     }
 
-  m_Filters[TImage::ImageDimension - 1]->Update();
-  this->GraftOutput(m_Filters[TImage::ImageDimension - 1]->GetOutput());
+  m_Filters[TInputImage::ImageDimension - 1]->Update();
+  this->GraftOutput(m_Filters[TInputImage::ImageDimension - 1]->GetOutput());
 
 }
 

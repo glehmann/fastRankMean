@@ -72,7 +72,7 @@ int main(int, char * argv[])
       }
 
     typedef itk::MedianImageFilter<IType, IType> MedianFilterType;
-    typedef itk::SeparableRadiusImageFilter<IType, MedianFilterType> SeparableMedianFilterType;
+    typedef itk::SeparableRadiusImageFilter<IType, IType, MedianFilterType> SeparableMedianFilterType;
     SeparableMedianFilterType::Pointer sep_median = SeparableMedianFilterType::New();
     sep_median->SetInput(reader->GetOutput());
     sep_median->SetRadius(ThisRadius);
