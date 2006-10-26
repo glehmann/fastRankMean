@@ -63,7 +63,7 @@ ENDIF(BUILD_WRAPPERS)
 
 IF(BUILD_TESTING)
 
-FOREACH(CurrentExe "test2DCharHistMedian" "test2DShortHistMedian" "test2DIntHistMedian" "perfMedian")
+FOREACH(CurrentExe "test2DCharHistMedian" "test2DShortHistMedian" "test2DIntHistMedian" "perfMedian" "perfMedianShort" "perfMedianInt")
 
 ADD_EXECUTABLE(${CurrentExe} ${CurrentExe}.cxx)
 TARGET_LINK_LIBRARIES(${CurrentExe} ${Libraries})
@@ -83,7 +83,7 @@ ADD_EXECUTABLE(${CurrentExe} ${CurrentExe}.cxx)
 TARGET_LINK_LIBRARIES(${CurrentExe} ${Libraries})
 
 ENDFOREACH(CurrentExe)
-FOREACH(CurrentExe "test2DSepMedian" "test2DSepMaskMedian" "perfMedianB")
+FOREACH(CurrentExe "test2DSepMedian" "test2DSepMaskMedian" "perfMedianB" "perfMedianShortB" "perfMedianIntB")
 
 ADD_EXECUTABLE(${CurrentExe} ${CurrentExe}.cxx)
 TARGET_LINK_LIBRARIES(${CurrentExe} ${Libraries})

@@ -493,6 +493,7 @@ MovingHistogramImageFilter<TInputImage, TOutputImage, TKernel, THistogram>
 	if (Steps[i] > Steps[LineDirection])
 	  {
 	  //PrevLineStartVec[i] = LineStart;
+	  delete(HistVec[i]);
 	  HistVec[i] = HistVec[LineDirection]->Clone();
 	  }
 	}

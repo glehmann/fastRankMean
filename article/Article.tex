@@ -154,17 +154,52 @@ lena image on a AMD Athlon 64 3000+, 1.8GHz with 512KB cache and 4GB RAM.
 Radius & Traditional & Huang & Separable \\
 \hline
 \hline
-1    &   0.145 &  0.134 &  0.0329 \\
-5    &   0.878 &  0.322 &  0.0311 \\
-10   &   3.41  &  0.299 &  0.0179 \\
-15   &   8.39  &  0.424 &  0.0185 \\
-20   &   16.5  &  0.547 &  0.0182 \\
-40   &   96.9  &  1.04  &  0.0178 \\
+1    &   0.154 &  0.134 &  0.0323 \\
+5    &   0.847 &  0.241 &  0.0312 \\
+10   &   3.36  &  0.305 &  0.0171 \\
+15   &   8     &  0.421 &  0.0164 \\
+20   &   15.9  &  0.548 &  0.0169 \\
+40   &   93.5  &  1.06  &  0.0169 \\
 \hline
 \end{tabular}
-\caption{Execution times. \label{tbl:perf}}
+\caption{Execution times for unsigned char data. \label{tbl:perf}}
 \end{table}
 
+\begin{table}[htbp]
+\centering
+\begin{tabular}{|c|c|c|c|c|c|}
+\hline
+Radius & Traditional & Huang(map) & Huang(vector) & Separable(Map) & Separable(vector) \\
+\hline
+\hline
+1    &   0.0769 &  0.441 & 0.762 &  0.0788 & 0.26\\
+5    &   0.769  &  0.564 & 0.7 &  0.0738 & 0.173\\
+10   &   3.1  &  0.858  & 0.837 &  0.0418 & 0.175 \\
+15   &   7.67  &  1.31 & 1.01 &  0.0408 & 0.174 \\
+20   &   15.2  &  1.59  & 1.15 &  0.0408 & 0.172\\
+40   &   90.3  &  3.09  & 1.82 &  0.0398 & 0.174\\
+\hline
+\end{tabular}
+\caption{Execution times for lena cast to short data. \label{tbl:perfShort}}
+\end{table}
+
+\begin{table}[htbp]
+\centering
+\begin{tabular}{|c|c|c|c|}
+\hline
+Radius & Traditional & Huang & Separable \\
+\hline
+\hline
+1    &   0.141 &  0.347 &  0.0785 \\
+5    &   0.775 &  0.484 &  0.0755 \\
+10   &   3.05  &  0.83  &  0.0433 \\
+15   &   7.67  &  1.16  &  0.041 \\
+20   &   15.2  &  1.57  &  0.052 \\
+40   &   90.3  &  2.97  &  0.0401 \\
+\hline
+\end{tabular}
+\caption{Execution times for lena cast to integer data. \label{tbl:perfInt}}
+\end{table}
 \section{Application specific details}
 \subsection{Boundary conditions}
 These filters implement different boundary conditions to the
