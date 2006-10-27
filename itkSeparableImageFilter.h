@@ -9,12 +9,17 @@ namespace itk {
 
 /**
  * \class SeparableImageFilter
- * \brief A separable rank filter
- * 
- * Medians aren't separable, but if you want a large robust smoother
- * to be relatively quick then it is worthwhile pretending that they
- * are.
+ * \brief A separable filter for filter which are using kernel
  *
+ * This filter takes a non separable implementation of a neighborhood
+ * filter, and run it several times (one per dimension) to implement
+ * the same separable transform.
+ * This filter can be used with the filter for which the neighborhood is
+ * defined by the SetKernel() method. The kernel type of the filter
+ * must be itk::Neighborhood< bool, ImageDimension >. For a filter which
+ * use the SetRadius() method, the SeparableRadiusImageFilter can be used.
+ *
+ * \author Gaetan Lehmann
  * \author Richard Beare
  */
 
