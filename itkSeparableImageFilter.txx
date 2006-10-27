@@ -6,8 +6,8 @@
 
 namespace itk {
 
-template <class TInputImage, class TOutputImage, class TFilter>
-SeparableImageFilter<TInputImage, TOutputImage, TFilter>
+template <class TInputImage, class TOutputImage, class TFilter, class TKernel>
+SeparableImageFilter<TInputImage, TOutputImage, TFilter, TKernel>
 ::SeparableImageFilter()
 {
   m_Radius.Fill(5);  // an arbitary starting point
@@ -30,9 +30,9 @@ SeparableImageFilter<TInputImage, TOutputImage, TFilter>
 }
 
 
-template<class TInputImage, class TOutputImage, class TFilter>
+template<class TInputImage, class TOutputImage, class TFilter, class TKernel>
 void
-SeparableImageFilter<TInputImage, TOutputImage, TFilter>
+SeparableImageFilter<TInputImage, TOutputImage, TFilter, TKernel>
 ::Modified() const
 {
   Superclass::Modified();
@@ -43,9 +43,9 @@ SeparableImageFilter<TInputImage, TOutputImage, TFilter>
 }
 
 
-template<class TInputImage, class TOutputImage, class TFilter>
+template<class TInputImage, class TOutputImage, class TFilter, class TKernel>
 void
-SeparableImageFilter<TInputImage, TOutputImage, TFilter>
+SeparableImageFilter<TInputImage, TOutputImage, TFilter, TKernel>
 ::GenerateInputRequestedRegion()
 {
   // call the superclass' implementation of this method
@@ -95,9 +95,9 @@ SeparableImageFilter<TInputImage, TOutputImage, TFilter>
 }
 
 
-template <class TInputImage, class TOutputImage, class TFilter>
+template <class TInputImage, class TOutputImage, class TFilter, class TKernel>
 void
-SeparableImageFilter<TInputImage, TOutputImage, TFilter>
+SeparableImageFilter<TInputImage, TOutputImage, TFilter, TKernel>
 ::SetRadius( const RadiusType radius )
 {
   this->m_Radius = radius;
@@ -118,9 +118,9 @@ SeparableImageFilter<TInputImage, TOutputImage, TFilter>
 }
 
 
-template <class TInputImage, class TOutputImage, class TFilter>
+template <class TInputImage, class TOutputImage, class TFilter, class TKernel>
 void
-SeparableImageFilter<TInputImage, TOutputImage, TFilter>
+SeparableImageFilter<TInputImage, TOutputImage, TFilter, TKernel>
 ::GenerateData()
 {
   this->AllocateOutputs();

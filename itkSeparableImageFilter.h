@@ -3,7 +3,7 @@
 
 #include "itkImageToImageFilter.h"
 #include "itkCastImageFilter.h"
-
+#include "itkNeighborhood.h"
 
 namespace itk {
 
@@ -16,14 +16,15 @@ namespace itk {
  * the same separable transform.
  * This filter can be used with the filter for which the neighborhood is
  * defined by the SetKernel() method. The kernel type of the filter
- * must be itk::Neighborhood< bool, ImageDimension >. For a filter which
+ * is itk::Neighborhood< bool, ImageDimension > by default, but it can
+ * be specified with the last tempalte parameter. For a filter which
  * use the SetRadius() method, the SeparableRadiusImageFilter can be used.
  *
  * \author Gaetan Lehmann
  * \author Richard Beare
  */
 
-template<class TInputImage, class TOutputImage, class TFilter>
+template<class TInputImage, class TOutputImage, class TFilter, class TKernel=Neighborhood<bool, TInputImage::ImageDimension> >
 class ITK_EXPORT SeparableImageFilter : 
 public ImageToImageFilter<TInputImage, TOutputImage>
 {
@@ -61,6 +62,8 @@ public:
   /** n-dimensional Kernel radius. */
   typedef typename TInputImage::SizeType RadiusType ;
 
+  typedef TKernel KernelType;
+
   // itkSetMacro(Radius, RadiusType);
   void SetRadius( const RadiusType );
   itkGetMacro(Radius, RadiusType);
@@ -74,8 +77,6 @@ protected:
   ~SeparableImageFilter() {};
 
   void GenerateData();
-
-  typedef typename itk::Neighborhood<bool, TInputImage::ImageDimension> KernelType;
 
   KernelType m_kernels[ImageDimension];
 
