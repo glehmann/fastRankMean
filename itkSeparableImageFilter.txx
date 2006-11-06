@@ -108,12 +108,13 @@ SeparableImageFilter<TInputImage, TOutputImage, TFilter, TKernel>
     RadiusType rad;
     rad.Fill(0);
     rad[i] = m_Radius[i];
-    m_kernels[i].SetRadius(rad);
-    for( typename KernelType::Iterator kit=m_kernels[i].Begin(); kit!=m_kernels[i].End(); kit++ )
+    KernelType kernel;
+    kernel.SetRadius(rad);
+    for( typename KernelType::Iterator kit=kernel.Begin(); kit!=kernel.End(); kit++ )
       {
       *kit = true;
       }
-    m_Filters[i]->SetKernel(m_kernels[i]);
+    m_Filters[i]->SetKernel(kernel);
     }
 }
 
@@ -138,6 +139,17 @@ SeparableImageFilter<TInputImage, TOutputImage, TFilter, TKernel>
   m_Filters[TInputImage::ImageDimension - 1]->Update();
   this->GraftOutput(m_Filters[TInputImage::ImageDimension - 1]->GetOutput());
 
+}
+
+
+template <class TInputImage, class TOutputImage, class TFilter, class TKernel>
+void
+SeparableImageFilter<TInputImage, TOutputImage, TFilter, TKernel>
+::PrintSelf(std::ostream &os, Indent indent) const
+{
+  Superclass::PrintSelf(os, indent);
+
+  os << indent << "Radius: " << m_Radius << std::endl;
 }
 
 }

@@ -78,7 +78,7 @@ protected:
 
   void GenerateData();
 
-  KernelType m_kernels[ImageDimension];
+  void PrintSelf(std::ostream& os, Indent indent) const;
 
   typename FilterType::Pointer m_Filters[ImageDimension];
   

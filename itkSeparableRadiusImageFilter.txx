@@ -135,6 +135,17 @@ SeparableRadiusImageFilter<TInputImage, TOutputImage, TFilter>
 
 }
 
+
+template <class TInputImage, class TOutputImage, class TFilter>
+void
+SeparableRadiusImageFilter<TInputImage, TOutputImage, TFilter>
+::PrintSelf(std::ostream &os, Indent indent) const
+{
+  Superclass::PrintSelf(os, indent);
+
+  os << indent << "Radius: " << m_Radius << std::endl;
+}
+
 }
 
 

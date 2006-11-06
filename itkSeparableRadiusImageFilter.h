@@ -74,9 +74,7 @@ protected:
 
   void GenerateData();
 
-  typedef typename itk::Neighborhood<bool, TInputImage::ImageDimension> KernelType;
-
-  KernelType m_kernels[ImageDimension];
+  void PrintSelf(std::ostream& os, Indent indent) const;
 
   typename FilterType::Pointer m_Filters[ImageDimension];
   
