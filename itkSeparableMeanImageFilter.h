@@ -1,5 +1,5 @@
-#ifndef __itkFastApproxRankImageFilter_h
-#define __itkFastApproxRankImageFilter_h
+#ifndef __itkSeparableMeanImageFilter_h
+#define __itkSeparableMeanImageFilter_h
 
 #include "itkSeparableImageFilter.h"
 #include "itkMovingWindowMeanImageFilter.h"
