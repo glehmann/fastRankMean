@@ -45,6 +45,15 @@ MaskedMovingHistogramImageFilter<TInputImage, TMaskImage, TOutputImage, TKernel,
 
 
 template<class TInputImage, class TMaskImage, class TOutputImage, class TKernel, class THistogram>
+THistogram *
+MaskedMovingHistogramImageFilter<TInputImage, TMaskImage, TOutputImage, TKernel, THistogram>
+::NewHistogram()
+{
+  return new THistogram();
+}
+
+
+template<class TInputImage, class TMaskImage, class TOutputImage, class TKernel, class THistogram>
 void
 MaskedMovingHistogramImageFilter<TInputImage, TMaskImage, TOutputImage, TKernel, THistogram>
 ::SetGenerateOutputMask( bool generateOutputMask )
@@ -310,7 +319,7 @@ MaskedMovingHistogramImageFilter<TInputImage, TMaskImage, TOutputImage, TKernel,
     // which direction
     int LineDirection;
     // This function deals with changing planes etc
-    GetDirAndOffset(LineStart, PrevLineStart, ImageDimension,
+    this->GetDirAndOffset(LineStart, PrevLineStart, ImageDimension,
                     LineOffset, Changes, LineDirection);
     ++(Steps[LineDirection]);
     IndexType PrevLineStartHist = LineStart - LineOffset;

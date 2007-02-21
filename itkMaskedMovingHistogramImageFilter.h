@@ -17,7 +17,7 @@
 #ifndef __itkMaskedMovingHistogramImageFilter_h
 #define __itkMaskedMovingHistogramImageFilter_h
 
-#include "itkMovingHistogramImageFilter.h"
+#include "itkMovingHistogramImageFilterBase.h"
 #include <list>
 #include <map>
 #include <set>
@@ -34,12 +34,12 @@ namespace itk {
 
 template<class TInputImage, class TMaskImage, class TOutputImage, class TKernel, class THistogram >
 class ITK_EXPORT MaskedMovingHistogramImageFilter : 
-    public MovingHistogramImageFilter<TInputImage, TOutputImage, TKernel, THistogram>
+    public MovingHistogramImageFilterBase<TInputImage, TOutputImage, TKernel>
 {
 public:
   /** Standard class typedefs. */
   typedef MaskedMovingHistogramImageFilter Self;
-  typedef MovingHistogramImageFilter<TInputImage, TOutputImage, TKernel, THistogram>  Superclass;
+  typedef MovingHistogramImageFilterBase<TInputImage, TOutputImage, TKernel>  Superclass;
   typedef SmartPointer<Self>        Pointer;
   typedef SmartPointer<const Self>  ConstPointer;
   
@@ -147,6 +147,13 @@ protected:
   
   void PrintSelf(std::ostream& os, Indent indent) const;
   
+  /** NewHistogram must return an histogram object. It's also the good place to 
+   * pass parameters to the histogram.
+   * A default version is provided which just create a new Historgram and return
+   * it.
+   */
+  virtual THistogram * NewHistogram();
+
   void pushHistogram(HistogramType *histogram, 
 		     const OffsetListType* addedList,
 		     const OffsetListType* removedList,
