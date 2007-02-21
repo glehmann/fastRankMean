@@ -35,7 +35,7 @@ public:
 
   void RemoveBoundary(){}
  
-  virtual TInputPixel GetValue(){return 0;}
+  virtual TInputPixel GetValue( const TInputPixel & ){return 0;}
 
   void SetRank(float rank)
   {
@@ -116,7 +116,7 @@ public:
     m_RankIt = m_Map.begin();
   }
 
-  TInputPixel GetValue()
+  TInputPixel GetValue( const TInputPixel & )
   {
     unsigned long target = (int)(this->m_Rank * (m_Entries-1)) + 1;
     unsigned long total = m_Below;
@@ -266,7 +266,7 @@ public:
   {
   }
 
-  TInputPixel GetValue()
+  TInputPixel GetValue( const TInputPixel & )
   {
     unsigned long target = (int)(this->m_Rank * (m_Entries-1)) + 1;
     unsigned long total = m_Below;

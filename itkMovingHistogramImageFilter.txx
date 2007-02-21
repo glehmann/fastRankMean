@@ -40,6 +40,7 @@ MovingHistogramImageFilter<TInputImage, TOutputImage, TKernel, THistogram>
   : m_Kernel()
 {
   m_PixelsPerTranslation = 0;
+  this->SetRadius( 1 );
 }
 
 
@@ -51,6 +52,31 @@ MovingHistogramImageFilter<TInputImage, TOutputImage, TKernel, THistogram>
   return new THistogram();
 }
 
+
+template<class TInputImage, class TOutputImage, class TKernel, class THistogram>
+void
+MovingHistogramImageFilter<TInputImage, TOutputImage, TKernel, THistogram>
+::SetRadius( const RadiusType & radius )
+{
+  KernelType kernel;
+  kernel.SetRadius( radius );
+  for( typename KernelType::Iterator kit=kernel.Begin(); kit!=kernel.End(); kit++ )
+    {
+    *kit = 1;
+    }
+  this->SetKernel( kernel );
+}
+
+
+template<class TInputImage, class TOutputImage, class TKernel, class THistogram>
+void
+MovingHistogramImageFilter<TInputImage, TOutputImage, TKernel, THistogram>
+::SetRadius( unsigned long radius )
+{
+  RadiusType rad;
+  rad.Fill( radius );
+  this->SetRadius( rad );
+}
 
 
 template<class TInputImage, class TOutputImage, class TKernel, class THistogram>
@@ -259,7 +285,7 @@ MovingHistogramImageFilter<TInputImage, TOutputImage, TKernel, THistogram>
         { histogram->AddBoundary(); }
       }
     // and set the first point of the image
-    outputImage->SetPixel( outputRegionForThread.GetIndex(), static_cast< OutputPixelType >( histogram->GetValue() ) );
+    outputImage->SetPixel( outputRegionForThread.GetIndex(), static_cast< OutputPixelType >( histogram->GetValue( inputImage->GetPixel( outputRegionForThread.GetIndex() ) ) ) );
     progress.CompletedPixel();
     
     // now move the histogram
@@ -317,7 +343,7 @@ MovingHistogramImageFilter<TInputImage, TOutputImage, TKernel, THistogram>
             }
            }
          
-        OutputPixelType value = static_cast< OutputPixelType >( histogram->GetValue() );
+        OutputPixelType value = static_cast< OutputPixelType >( histogram->GetValue( inputImage->GetPixel( currentIdx ) ) );
         
         // store the new index
         currentIdx += offset;
@@ -449,7 +475,7 @@ MovingHistogramImageFilter<TInputImage, TOutputImage, TKernel, THistogram>
 	
 	// Update the historgram
 	IndexType currentIdx = InLineIt.GetIndex();
-	outputImage->SetPixel(currentIdx, static_cast< OutputPixelType >( histRef->GetValue() ));
+	outputImage->SetPixel(currentIdx, static_cast< OutputPixelType >( histRef->GetValue( inputImage->GetPixel( currentIdx ) ) ));
 	stRegion.SetIndex( currentIdx - centerOffset );
 	pushHistogram(histRef, addedList, removedList, inputRegion, 
 		      stRegion, inputImage, currentIdx);

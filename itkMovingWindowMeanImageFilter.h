@@ -50,7 +50,7 @@ public:
     assert( count >= 0 );
     }
 
-  inline double GetValue()
+  inline double GetValue( const TInputPixel & )
     {
     return sum / static_cast< double >( count );
     }

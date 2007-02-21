@@ -40,7 +40,7 @@ public:
 
   virtual bool IsValid() {}
 
-  virtual TInputPixel GetValue(){}
+  virtual TInputPixel GetValue( const TInputPixel & ){}
 
   void SetRank(float rank)
   {
@@ -158,7 +158,7 @@ public:
    }
 
 
-  TInputPixel GetValue()
+  TInputPixel GetValue( const TInputPixel & )
     {
     unsigned long target = (int)(this->m_Rank * (m_Entries-1)) + 1;
     unsigned long total = m_Below;
@@ -229,7 +229,7 @@ public:
     }
 
 #if 0
-  TInputPixel GetValue()
+  TInputPixel GetValue( const TInputPixel & )
   {    // clean the map
     typename MapType::iterator mapIt = m_Map.begin();
     while( mapIt != m_Map.end() )
@@ -336,7 +336,7 @@ public:
    }
 
 
-  TInputPixel GetValue()
+  TInputPixel GetValue( const TInputPixel & )
   {
     unsigned long target = (int)(this->m_Rank * (m_Entries-1)) + 1;
     unsigned long total = m_Below;

@@ -274,7 +274,7 @@ MaskedMovingHistogramImageFilter<TInputImage, TMaskImage, TOutputImage, TKernel,
       if( maskImage->GetPixel(currentIdx) == m_MaskValue && histRef->IsValid() ) 
         {		
         outputImage->SetPixel( currentIdx,
-                              static_cast< OutputPixelType >( histRef->GetValue() ) );
+                              static_cast< OutputPixelType >( histRef->GetValue( inputImage->GetPixel(currentIdx) ) ) );
         if( this->m_GenerateOutputMask )
           {
           outputMask->SetPixel( currentIdx, m_MaskValue );
