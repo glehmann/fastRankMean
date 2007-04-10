@@ -10,23 +10,22 @@ template <class TInputImage, class TOutputImage, class TFilter>
 SeparableRadiusImageFilter<TInputImage, TOutputImage, TFilter>
 ::SeparableRadiusImageFilter()
 {
-  m_Radius.Fill(5);  // an arbitary starting point
-  m_Cast = CastType::New();
-  m_Cast->SetInPlace( true );
-  m_Cast->ReleaseDataFlagOn();
-  for (unsigned i = 0; i < ImageDimension; i++)
+  m_Radius.Fill(1);  // an arbitary starting point
+  
+  // create the pipeline
+  for( unsigned i = 0; i < ImageDimension; i++ )
     {
     m_Filters[i] = FilterType::New();
-    if (i > 0) 
+    m_Filters[i]->ReleaseDataFlagOn();
+    if( i > 0 ) 
       {
-      m_Filters[i]->SetInput(m_Filters[i-1]->GetOutput());
-      }
-    if (i < ImageDimension - 1) 
-      {
-      m_Filters[i]->ReleaseDataFlagOn();
+      m_Filters[i]->SetInput( m_Filters[i-1]->GetOutput() );
       }
     }
-    m_Filters[0]->SetInput( m_Cast->GetOutput() );
+  
+  m_Cast = CastType::New();
+  m_Cast->SetInput( m_Filters[ImageDimension-1]->GetOutput() );
+  m_Cast->SetInPlace( true );
 }
 
 
@@ -40,6 +39,7 @@ SeparableRadiusImageFilter<TInputImage, TOutputImage, TFilter>
     {
     m_Filters[i]->Modified();
     }
+  m_Cast->Modified();
 }
 
 
@@ -119,19 +119,20 @@ SeparableRadiusImageFilter<TInputImage, TOutputImage, TFilter>
 ::GenerateData()
 {
   this->AllocateOutputs();
+  
   // set up the pipeline
-  m_Cast->SetInput( this->GetInput() );
+  m_Filters[0]->SetInput( this->GetInput() );
 
   // Create a process accumulator for tracking the progress of this minipipeline
   ProgressAccumulator::Pointer progress = ProgressAccumulator::New();
   progress->SetMiniPipelineFilter(this);
-  for (unsigned i = 0; i< ImageDimension; i++)
+  for( unsigned i = 0; i< ImageDimension; i++ )
     {
-    progress->RegisterInternalFilter(m_Filters[i], 1.0/ImageDimension);
+    progress->RegisterInternalFilter( m_Filters[i], 1.0/ImageDimension );
     }
 
-  m_Filters[TInputImage::ImageDimension - 1]->Update();
-  this->GraftOutput(m_Filters[TInputImage::ImageDimension - 1]->GetOutput());
+  m_Cast->Update();
+  this->GraftOutput( m_Cast->GetOutput() );
 
 }
 
