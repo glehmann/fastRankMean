@@ -2,8 +2,8 @@
 PROJECT(fastRankMean)
 
 # set the name of the input image used to run the test
-SET(INPUT_IMAGE ${CMAKE_SOURCE_DIR}/images/cthead1.png)
-SET(INPUT_MASK ${CMAKE_SOURCE_DIR}/images/mask.png)
+SET(INPUT_IMAGE ${CMAKE_CURRENT_SOURCE_DIR}/images/cthead1.png)
+SET(INPUT_MASK ${CMAKE_CURRENT_SOURCE_DIR}/images/mask.png)
 
 #include some macros from another file...
 INCLUDE(IJMacros.txt)
@@ -107,7 +107,7 @@ ENDIF(BUILD_TESTING)
 # ADD_TEST(Testname ExecutableToRun arg1 arg2 arg3)
 
 #ADD_TEST(Run check ${INPUT_IMAGE} out.png)
-#ADD_TEST(CompareImage ${IMAGE_COMPARE} out.png ${CMAKE_SOURCE_DIR}/images/test.png)
+#ADD_TEST(CompareImage ${IMAGE_COMPARE} out.png ${CMAKE_CURRENT_SOURCE_DIR}/images/test.png)
 
 ADD_TEST(test2Dchar test2DCharHistMedian 1 ${INPUT_IMAGE} chr_hist.png chr_std.png)
 ADD_TEST(test2Dshort test2DShortHistMedian 1 ${INPUT_IMAGE} shrt_hist.nrrd chr_std.nrrd)
