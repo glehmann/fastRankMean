@@ -89,7 +89,7 @@ ADD_EXECUTABLE(${CurrentExe} ${CurrentExe}.cxx)
 TARGET_LINK_LIBRARIES(${CurrentExe} ${Libraries})
 
 ENDFOREACH(CurrentExe)
-FOREACH(CurrentExe "perfMeanB")
+FOREACH(CurrentExe "perfMeanB" perf_threads)
 
 ADD_EXECUTABLE(${CurrentExe} ${CurrentExe}.cxx)
 TARGET_LINK_LIBRARIES(${CurrentExe} ${Libraries})
