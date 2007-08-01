@@ -41,6 +41,20 @@ SeparableImageFilter<TInputImage, TOutputImage, TFilter>
 }
 
 
+template<class TInputImage, class TOutputImage, class TFilter>
+void
+SeparableImageFilter<TInputImage, TOutputImage, TFilter>
+::SetNumberOfThreads( int nb )
+{
+  Superclass::SetNumberOfThreads( nb );
+  for (unsigned i = 0; i < ImageDimension; i++)
+    {
+    m_Filters[i]->SetNumberOfThreads( nb );
+    }
+  m_Cast->SetNumberOfThreads( nb );
+}
+
+
 template <class TInputImage, class TOutputImage, class TFilter>
 void
 SeparableImageFilter<TInputImage, TOutputImage, TFilter>
