@@ -130,60 +130,6 @@ MaskedMovingHistogramImageFilter<TInputImage, TMaskImage, TOutputImage, TKernel,
 }
 
 
-template<class TInputImage, class TMaskImage, class TOutputImage, class TKernel, class THistogram>
-void
-MaskedMovingHistogramImageFilter<TInputImage, TMaskImage, TOutputImage, TKernel, THistogram>
-::GenerateInputRequestedRegion()
-{
-  // call the superclass' implementation of this method
-  Superclass::GenerateInputRequestedRegion();
-  
-  // get pointers to the input and output
-  typename MaskImageType::Pointer  maskPtr = 
-    const_cast< TMaskImage * >( this->GetMaskImage() );
-
-  if ( !maskPtr)
-    {
-//     std::cout << "MM: mask null" << std::endl;
-    return;
-    }
-  // get a copy of the input requested region (should equal the output
-  // requested region)
-  typename TMaskImage::RegionType maskRequestedRegion;
-  
-  maskRequestedRegion = maskPtr->GetRequestedRegion();
-
-  // pad the input requested region by the operator radius
-  maskRequestedRegion.PadByRadius( this->m_Kernel.GetRadius() );
-
-  // crop the input requested region at the input's largest possible region
-  if ( maskRequestedRegion.Crop(maskPtr->GetLargestPossibleRegion()) )
-    {
-    maskPtr->SetRequestedRegion( maskRequestedRegion );
-    return;
-    }
-  else
-    {
-    // Couldn't crop the region (requested region is outside the largest
-    // possible region).  Throw an exception.
-
-    // store what we tried to request (prior to trying to crop)
-    maskPtr->SetRequestedRegion( maskRequestedRegion );
-    
-    // build an exception
-    InvalidRequestedRegionError e(__FILE__, __LINE__);
-    OStringStream msg;
-    msg << static_cast<const char *>(this->GetNameOfClass())
-        << "::GenerateInputRequestedRegion()";
-    e.SetLocation(msg.str().c_str());
-    e.SetDescription("Requested (for mask) region is (at least partially) outside the largest possible region.");
-    e.SetDataObject(maskPtr);
-    throw e;
-    }
-}
-
-
-
 // a modified version that uses line iterators and only moves the
 // histogram in one direction. Hopefully it will be a bit simpler and
 // faster due to improved memory access and a tighter loop.

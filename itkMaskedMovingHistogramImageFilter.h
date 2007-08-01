@@ -109,13 +109,6 @@ public:
 
   typedef typename std::map< OffsetType, OffsetListType, typename Functor::OffsetLexicographicCompare<ImageDimension> > OffsetMapType;
 
-  /** MaskedMovingHistogramImageFilterBase need to make sure they request enough of an
-   * input image to account for the structuring element size.  The input
-   * requested region is expanded by the radius of the structuring element.
-   * If the request extends past the LargestPossibleRegion for the input,
-   * the request is cropped by the LargestPossibleRegion. */
-  void GenerateInputRequestedRegion() ;
-
   /** Get the modified mask image */
   MaskImageType * GetOutputMask();
 

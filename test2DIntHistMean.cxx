@@ -11,7 +11,7 @@ int main(int, char * argv[])
 {
   const int dim = 2;
   
-  typedef int PType;
+  typedef unsigned char PType;
   typedef itk::Image< PType, dim > IType;
 
   unsigned repeats = (unsigned)atoi(argv[1]);
@@ -25,7 +25,7 @@ int main(int, char * argv[])
 
 
   KType kernel;
-  kernel.SetRadius(10);
+  kernel.SetRadius(3);
   for( KType::Iterator kit=kernel.Begin(); kit!=kernel.End(); kit++ )
     {
     *kit=1;

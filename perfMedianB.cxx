@@ -5,7 +5,7 @@
 #include "itkNeighborhood.h"
 #include "itkFastApproxRankImageFilter.h"
 #include "itkMedianImageFilter.h"
-#include "itkSeparableRadiusImageFilter.h"
+#include "itkSeparableImageFilter.h"
 #include "itkTimeProbe.h"
 #include <vector>
 #include <iomanip>
@@ -72,7 +72,7 @@ int main(int, char * argv[])
       }
 
     typedef itk::MedianImageFilter<IType, IType> MedianFilterType;
-    typedef itk::SeparableRadiusImageFilter<IType, IType, MedianFilterType> SeparableMedianFilterType;
+    typedef itk::SeparableImageFilter<IType, IType, MedianFilterType> SeparableMedianFilterType;
     SeparableMedianFilterType::Pointer sep_median = SeparableMedianFilterType::New();
     sep_median->SetInput(reader->GetOutput());
     sep_median->SetRadius(ThisRadius);

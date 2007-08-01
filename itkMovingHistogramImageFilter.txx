@@ -286,7 +286,7 @@ MovingHistogramImageFilter<TInputImage, TOutputImage, TKernel, THistogram>
       OffsetType LineOffset, Changes;
       // Figure out which stored histogram to move and in
       // which direction
-      int LineDirection;
+      int LineDirection=0;
       // This function deals with changing planes etc
       GetDirAndOffset(LineStart, PrevLineStart, ImageDimension,
 		      LineOffset, Changes, LineDirection);

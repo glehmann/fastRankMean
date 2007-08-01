@@ -1,34 +1,32 @@
-#ifndef __itkSeparableImageFilter_h
-#define __itkSeparableImageFilter_h
+#ifndef __itkKernelImageFilter_h
+#define __itkKernelImageFilter_h
 
 #include "itkBoxImageFilter.h"
 #include "itkCastImageFilter.h"
+#include "itkNeighborhood.h"
 
 
 namespace itk {
 
 /**
- * \class SeparableImageFilter
- * \brief A separable filter for filter which are using radius
+ * \class KernelImageFilter
+ * \brief A base class for all the filters working on an arbitrary shaped neighborhood
  *
- * This filter takes a non separable implementation of a neighborhood
- * filter, and run it several times (one per dimension) to implement
- * the same separable transform.
- * This filter can be used with the filter for which the neighborhood is
- * defined by the SetRadius() method, like the BoxImageFilter and its
- * subcalsses.
+ * This filter provides the code to store the radius information about the
+ * neighborhood used in the subclasses.
+ * It also conveniently reimplement the GenerateInputRequestedRegion() so
+ * that region is well defined for the porvided radius.
  *
  * \author Gaetan Lehmann
- * \author Richard Beare
  */
 
-template<class TInputImage, class TOutputImage, class TFilter>
-class ITK_EXPORT SeparableImageFilter : 
+template<class TInputImage, class TOutputImage, class TKernel/*=Neighborhood<bool, TInputImage::ImageDimension>*/ >
+class ITK_EXPORT KernelImageFilter : 
 public BoxImageFilter<TInputImage, TOutputImage>
 {
 public:
   /** Standard class typedefs. */
-  typedef SeparableImageFilter Self;
+  typedef KernelImageFilter Self;
   typedef BoxImageFilter<TInputImage,TOutputImage>  Superclass;
   typedef SmartPointer<Self>        Pointer;
   typedef SmartPointer<const Self>  ConstPointer;
@@ -37,7 +35,7 @@ public:
   itkNewMacro(Self);
 
   /** Runtime information support. */
-  itkTypeMacro(SeparableImageFilter,
+  itkTypeMacro(KernelImageFilter,
                BoxImageFilter);
  
   /** Image related typedefs. */
@@ -45,50 +43,54 @@ public:
   typedef typename TInputImage::RegionType RegionType ;
   typedef typename TInputImage::SizeType SizeType ;
   typedef typename TInputImage::IndexType IndexType ;
-  typedef typename TInputImage::PixelType PixelType ;
   typedef typename TInputImage::OffsetType OffsetType ;
+
+  typedef typename TInputImage::PixelType InputPixelType ;
   
   typedef TOutputImage OutputImageType;
   typedef typename TOutputImage::PixelType OutputPixelType ;
 
-  typedef TFilter FilterType ;
-  typedef CastImageFilter< InputImageType, OutputImageType > CastType ;
-  
+  typedef TKernel KernelType;
+
   /** Image related typedefs. */
   itkStaticConstMacro(ImageDimension, unsigned int,
                       TInputImage::ImageDimension);
   /** n-dimensional Kernel radius. */
   typedef typename TInputImage::SizeType RadiusType ;
 
-  virtual void SetRadius( const RadiusType & );
-
+  /** Set kernel (structuring element). */
+  virtual void SetKernel( const KernelType& kernel );
   virtual void SetRadius( const unsigned long & radius )
     {
     // needed because of the overloading of the method
     Superclass::SetRadius( radius );
     }
 
-  virtual void Modified() const;
+
+  /** Get/Set the kernel (structuring element). */
+  itkGetConstReferenceMacro(Kernel, KernelType);
+  
+  virtual void SetRadius( const RadiusType & radius );
 
 protected:
-  SeparableImageFilter();
-  ~SeparableImageFilter() {};
+  KernelImageFilter();
+  ~KernelImageFilter() {};
 
-  void GenerateData();
+  void PrintSelf(std::ostream& os, Indent indent) const;
 
-  typename FilterType::Pointer m_Filters[ImageDimension];
-  
-  typename CastType::Pointer m_Cast;
+  /** kernel or structuring element to use. */
+  KernelType m_Kernel ;
 
 private:
-  SeparableImageFilter(const Self&); //purposely not implemented
+  KernelImageFilter(const Self&); //purposely not implemented
   void operator=(const Self&); //purposely not implemented
+
 };
 
 }
 
 #ifndef ITK_MANUAL_INSTANTIATION
-#include "itkSeparableImageFilter.txx"
+#include "itkKernelImageFilter.txx"
 #endif
 
 #endif

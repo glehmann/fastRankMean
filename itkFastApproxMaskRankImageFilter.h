@@ -1,7 +1,7 @@
 #ifndef __itkFastApproxMaskRankImageFilter_h
 #define __itkFastApproxMaskRankImageFilter_h
 
-#include "itkImageToImageFilter.h"
+#include "itkBoxImageFilter.h"
 #include "itkMaskedRankImageFilter.h"
 #include "itkNotImageFilter.h"
 #include "itkMaskNegatedImageFilter.h"
@@ -26,12 +26,12 @@ namespace itk {
 
 template<class TInputImage, class TMaskImage, class TOutputImage>
 class ITK_EXPORT FastApproxMaskRankImageFilter : 
-public ImageToImageFilter<TInputImage, TOutputImage>
+public BoxImageFilter<TInputImage, TOutputImage>
 {
 public:
   /** Standard class typedefs. */
   typedef FastApproxMaskRankImageFilter Self;
-  typedef ImageToImageFilter<TInputImage,TOutputImage>  Superclass;
+  typedef BoxImageFilter<TInputImage,TOutputImage>  Superclass;
   typedef SmartPointer<Self>        Pointer;
   typedef SmartPointer<const Self>  ConstPointer;
   
@@ -40,7 +40,7 @@ public:
 
   /** Runtime information support. */
   itkTypeMacro(FastApproxMaskRankImageFilter,
-               ImageToImageFilter);
+               BoxImageFilter);
  
   /** Image related typedefs. */
   typedef TInputImage InputImageType;
@@ -84,8 +84,6 @@ public:
   /** n-dimensional Kernel radius. */
   typedef typename TInputImage::SizeType RadiusType ;
 
-  itkSetMacro(Radius, RadiusType);
-  itkGetMacro(Radius, RadiusType);
   itkSetMacro(Rank, float);
   itkGetMacro(Rank, float);
 
@@ -96,8 +94,6 @@ public:
   // region outside the mask or both inside and outside
   itkSetMacro(ReturnUnion, bool);
   itkGetMacro(ReturnUnion, bool);
-
-  void GenerateInputRequestedRegion() ;
 
   virtual void Modified() const;
 
@@ -112,7 +108,6 @@ private:
   void operator=(const Self&); //purposely not implemented
 
   float m_Rank;
-  RadiusType m_Radius;
 
   bool m_WriteInsideMask;
   bool m_ReturnUnion;

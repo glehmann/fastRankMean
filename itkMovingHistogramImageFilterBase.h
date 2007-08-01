@@ -17,7 +17,7 @@
 #ifndef __itkMovingHistogramImageFilterBase_h
 #define __itkMovingHistogramImageFilterBase_h
 
-#include "itkImageToImageFilter.h"
+#include "itkKernelImageFilter.h"
 #include <list>
 #include <map>
 #include <set>
@@ -90,12 +90,12 @@ namespace itk {
 
 template<class TInputImage, class TOutputImage, class TKernel >
 class ITK_EXPORT MovingHistogramImageFilterBase :
-    public ImageToImageFilter<TInputImage, TOutputImage>
+    public KernelImageFilter<TInputImage, TOutputImage, TKernel>
 {
 public:
   /** Standard class typedefs. */
   typedef MovingHistogramImageFilterBase Self;
-  typedef ImageToImageFilter<TInputImage,TOutputImage>  Superclass;
+  typedef KernelImageFilter<TInputImage, TOutputImage, TKernel>  Superclass;
   typedef SmartPointer<Self>        Pointer;
   typedef SmartPointer<const Self>  ConstPointer;
   
@@ -104,7 +104,7 @@ public:
 
   /** Runtime information support. */
   itkTypeMacro(MovingHistogramImageFilterBase, 
-               ImageToImageFilter);
+               KernelImageFilter);
   
   /** Image related typedefs. */
   typedef TInputImage InputImageType;
@@ -137,45 +137,18 @@ public:
   /** Set kernel (structuring element). */
   void SetKernel( const KernelType& kernel );
 
-  /** Get the kernel (structuring element). */
-  itkGetConstReferenceMacro(Kernel, KernelType);
-  
   itkGetMacro(PixelsPerTranslation, unsigned long);
   
-  /** MovingHistogramImageFilterBaseBase need to make sure they request enough of an
-   * input image to account for the structuring element size.  The input
-   * requested region is expanded by the radius of the structuring element.
-   * If the request extends past the LargestPossibleRegion for the input,
-   * the request is cropped by the LargestPossibleRegion. */
-  void GenerateInputRequestedRegion() ;
-
-  /**
-   * A convenient method to set the neighborhood to a box with the
-   * radius passed in parameter.
-   */
-  void SetRadius( const RadiusType & radius );
-
-  /**
-   * A convenient method to set the neighborhood to a box with the
-   * radius passed in parameter for all the dimensions.
-   */
-  void SetRadius( unsigned long radius );
-
 protected:
   MovingHistogramImageFilterBase();
   ~MovingHistogramImageFilterBase() {};
   
-  void PrintSelf(std::ostream& os, Indent indent) const;
-
   void GetDirAndOffset(const IndexType LineStart, 
                       const IndexType PrevLineStart,
                       const int ImageDimension,
                       OffsetType &LineOffset,
                       OffsetType &Changes,
                       int &LineDirection);
-
-  /** kernel or structuring element to use. */
-  KernelType m_Kernel ;
 
   // store the added and removed pixel offset in a list
   OffsetMapType m_AddedOffsets;

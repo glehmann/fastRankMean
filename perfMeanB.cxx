@@ -5,7 +5,7 @@
 #include "itkNeighborhood.h"
 #include "itkSeparableMeanImageFilter.h"
 #include "itkMeanImageFilter.h"
-#include "itkSeparableRadiusImageFilter.h"
+#include "itkSeparableImageFilter.h"
 #include "itkTimeProbe.h"
 #include <vector>
 #include <iomanip>
@@ -82,7 +82,7 @@ int main(int, char * argv[])
       }
 
 
-    typedef itk::SeparableRadiusImageFilter<IType, IType, MeanFilterType> SeparableMeanFilterType;
+    typedef itk::SeparableImageFilter<IType, IType, MeanFilterType> SeparableMeanFilterType;
     SeparableMeanFilterType::Pointer sep_mean = SeparableMeanFilterType::New();
     sep_mean->SetInput(reader->GetOutput());
     sep_mean->SetRadius(ThisRadius);

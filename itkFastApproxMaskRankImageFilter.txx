@@ -11,7 +11,6 @@ FastApproxMaskRankImageFilter<TInputImage, TMaskImage, TOutputImage>
 ::FastApproxMaskRankImageFilter()
 {
   m_Rank = 0.5;
-  m_Radius.Fill(5);  // an arbitary starting point
   m_firstFilt = RankType1::New();
   m_WriteInsideMask = true;
   m_ReturnUnion = false;
@@ -50,91 +49,6 @@ FastApproxMaskRankImageFilter<TInputImage, TMaskImage, TOutputImage>
 }
 
 
-template<class TInputImage, class TMaskImage, class TOutputImage>
-void
-FastApproxMaskRankImageFilter<TInputImage, TMaskImage, TOutputImage>
-::GenerateInputRequestedRegion()
-{
-  // call the superclass' implementation of this method
-  Superclass::GenerateInputRequestedRegion();
-  
-  // get pointers to the input and output
-  typename Superclass::InputImagePointer  inputPtr = 
-    const_cast< TInputImage * >( this->GetInput() );
-  typename MaskImageType::Pointer  maskPtr = 
-    const_cast< TMaskImage * >( this->GetMaskImage() );
-  
-  if ( !inputPtr )
-    {
-    return;
-    }
-
-  if ( !maskPtr)
-    {
-    std::cout << "FAM: mask null" << std::endl;
-    return;
-    }
-  // get a copy of the input requested region (should equal the output
-  // requested region)
-  typename TInputImage::RegionType inputRequestedRegion;
-  typename TMaskImage::RegionType maskRequestedRegion;
-  inputRequestedRegion = inputPtr->GetRequestedRegion();
-  maskRequestedRegion = maskPtr->GetRequestedRegion();
-
-  // pad the input requested region by the operator radius
-  inputRequestedRegion.PadByRadius( m_Radius );
-  maskRequestedRegion.PadByRadius( m_Radius );
-
-  // crop the input requested region at the input's largest possible region
-  if ( inputRequestedRegion.Crop(inputPtr->GetLargestPossibleRegion()) )
-    {
-    inputPtr->SetRequestedRegion( inputRequestedRegion );
-    return;
-    }
-  else
-    {
-    // Couldn't crop the region (requested region is outside the largest
-    // possible region).  Throw an exception.
-
-    // store what we tried to request (prior to trying to crop)
-    inputPtr->SetRequestedRegion( inputRequestedRegion );
-    
-    // build an exception
-    InvalidRequestedRegionError e(__FILE__, __LINE__);
-    OStringStream msg;
-    msg << static_cast<const char *>(this->GetNameOfClass())
-        << "::GenerateInputRequestedRegion()";
-    e.SetLocation(msg.str().c_str());
-    e.SetDescription("Requested region is (at least partially) outside the largest possible region.");
-    e.SetDataObject(inputPtr);
-    throw e;
-    }
-  // crop the input requested region at the input's largest possible region
-  if ( maskRequestedRegion.Crop(maskPtr->GetLargestPossibleRegion()) )
-    {
-    maskPtr->SetRequestedRegion( maskRequestedRegion );
-    return;
-    }
-  else
-    {
-    // Couldn't crop the region (requested region is outside the largest
-    // possible region).  Throw an exception.
-
-    // store what we tried to request (prior to trying to crop)
-    maskPtr->SetRequestedRegion( maskRequestedRegion );
-    
-    // build an exception
-    InvalidRequestedRegionError e(__FILE__, __LINE__);
-    OStringStream msg;
-    msg << static_cast<const char *>(this->GetNameOfClass())
-        << "::GenerateInputRequestedRegion()";
-    e.SetLocation(msg.str().c_str());
-    e.SetDescription("Requested (for mask) region is (at least partially) outside the largest possible region.");
-    e.SetDataObject(maskPtr);
-    throw e;
-    }
-}
-
 template <class TInputImage, class TMaskImage, class TOutputImage>
 void
 FastApproxMaskRankImageFilter<TInputImage, TMaskImage, TOutputImage>
@@ -167,7 +81,7 @@ FastApproxMaskRankImageFilter<TInputImage, TMaskImage, TOutputImage>
       {
       RadiusType ThisRad;
       ThisRad.Fill(0);
-      ThisRad[i] = m_Radius[i];
+      ThisRad[i] = this->GetRadius()[i];
       m_kernels[i].SetRadius(ThisRad);
       for( typename KernelType::Iterator kit=m_kernels[i].Begin(); kit!=m_kernels[i].End(); kit++ )
 	{
@@ -206,7 +120,7 @@ FastApproxMaskRankImageFilter<TInputImage, TMaskImage, TOutputImage>
       {
       RadiusType ThisRad;
       ThisRad.Fill(0);
-      ThisRad[i] = m_Radius[i];
+      ThisRad[i] = this->GetRadius()[i];
       m_kernels[i].SetRadius(ThisRad);
       for( typename KernelType::Iterator kit=m_kernels[i].Begin(); kit!=m_kernels[i].End(); kit++ )
 	{
