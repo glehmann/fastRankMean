@@ -97,6 +97,8 @@ public:
 
   virtual void Modified() const;
 
+  virtual void SetNumberOfThreads( int nb );
+
 protected:
   FastApproxMaskRankImageFilter();
   ~FastApproxMaskRankImageFilter() {};

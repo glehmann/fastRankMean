@@ -49,6 +49,26 @@ FastApproxMaskRankImageFilter<TInputImage, TMaskImage, TOutputImage>
 }
 
 
+template<class TInputImage, class TMaskImage, class TOutputImage>
+void
+FastApproxMaskRankImageFilter<TInputImage, TMaskImage, TOutputImage>
+::SetNumberOfThreads( int nb )
+{
+  Superclass::SetNumberOfThreads( nb );
+  m_firstFilt->SetNumberOfThreads( nb );
+  for (unsigned i = 0; i < TInputImage::ImageDimension - 1; i++)
+    {
+    m_otherFilts[i]->SetNumberOfThreads( nb );
+    }
+  for (unsigned i = 0; i < TInputImage::ImageDimension; i++)
+    {
+    m_EFilts[i]->SetNumberOfThreads( nb );
+    }
+  m_MaskFilt->SetNumberOfThreads( nb );
+  m_NegMaskFilt->SetNumberOfThreads( nb );
+}
+
+
 template <class TInputImage, class TMaskImage, class TOutputImage>
 void
 FastApproxMaskRankImageFilter<TInputImage, TMaskImage, TOutputImage>
